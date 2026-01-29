@@ -1,0 +1,3 @@
+button[wire\:click*="editFromScanner"] {
+    display: none !important;
+}
