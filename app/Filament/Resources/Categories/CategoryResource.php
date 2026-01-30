@@ -37,6 +37,7 @@ class CategoryResource extends BaseAclResource
     protected static ?string $model = Category::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
+    protected static string|null|\UnitEnum $navigationGroup = 'Produtos';
 
     protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $modelLabel = 'Categoria';
@@ -180,3 +181,4 @@ class CategoryResource extends BaseAclResource
             ]);
     }
 }
+

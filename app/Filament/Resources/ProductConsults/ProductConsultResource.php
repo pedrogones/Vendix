@@ -23,6 +23,7 @@ class ProductConsultResource extends BaseAclResource
     protected static string $permissionEntity = 'products';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMagnifyingGlass;
+    protected static string|null|\UnitEnum $navigationGroup = 'Produtos';
     protected static ?string $navigationLabel = 'Consulta de Produtos';
     protected static ?string $modelLabel = 'Consulta de Produto';
     protected static ?string $pluralModelLabel = 'Consulta de Produtos';
@@ -177,3 +178,4 @@ class ProductConsultResource extends BaseAclResource
         return false;
     }
 }
+

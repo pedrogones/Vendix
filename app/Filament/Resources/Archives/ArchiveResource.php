@@ -41,6 +41,7 @@ class ArchiveResource extends BaseAclResource
     protected static ?string $model = Archive::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolder;
+    protected static string|null|\UnitEnum $navigationGroup = 'Arquivos';
     protected static string $permissionEntity = 'archives';
     protected static ?string $recordTitleAttribute = 'original_name';
     protected static ?string $modelLabel = 'Arquivo';
@@ -262,3 +263,4 @@ class ArchiveResource extends BaseAclResource
     }
 
 }
+

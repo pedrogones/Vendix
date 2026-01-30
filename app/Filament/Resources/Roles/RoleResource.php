@@ -30,6 +30,7 @@ class RoleResource extends BaseAclResource
 {
     protected static ?string $model = Role::class;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
+    protected static string|null|\UnitEnum $navigationGroup = 'Seguranca';
 
     protected static string $permissionEntity = 'roles';
 
@@ -113,3 +114,4 @@ class RoleResource extends BaseAclResource
     }
 
 }
+

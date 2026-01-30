@@ -38,6 +38,7 @@ class ClientResource extends BaseAclResource
     protected static ?string $model = Client::class;
     protected static string $permissionEntity = 'clients';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+    protected static string|null|\UnitEnum $navigationGroup = 'Clientes';
 
     protected static ?string $recordTitleAttribute = 'cpf';
     protected static ?string $modelLabel = 'Cliente';
@@ -191,3 +192,4 @@ class ClientResource extends BaseAclResource
 
 
 }
+

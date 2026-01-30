@@ -7,6 +7,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-intl": "*",
+        "ext-zip": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "filament/filament": "^4.3",
         "joaopaulolndev/filament-edit-profile": "2.0",

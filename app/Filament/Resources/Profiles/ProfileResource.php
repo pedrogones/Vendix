@@ -19,6 +19,7 @@ class ProfileResource extends BaseAclResource
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserCircle;
+    protected static string|null|\UnitEnum $navigationGroup = 'Seguranca';
 
     protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $modelLabel = 'Perfil';
@@ -71,3 +72,5 @@ class ProfileResource extends BaseAclResource
         ];
     }
 }
+
+

@@ -2,8 +2,8 @@
 
 .pdv {
     --bg: #f6f7fb;
-    --panel: rgba(255, 255, 255, 0.82);
-    --panel-2: rgba(255, 255, 255, 0.94);
+    --panel: #ffffff;
+    --panel-2: #ffffff;
     --border: rgba(15, 23, 42, 0.1);
     --text: #0f172a;
     --muted: rgba(15, 23, 42, 0.62);
@@ -25,8 +25,8 @@
 
 html.dark .pdv {
     --bg: #0b1220;
-    --panel: rgba(15, 23, 42, 0.92);
-    --panel-2: rgba(15, 23, 42, 0.98);
+    --panel: #0f172a;
+    --panel-2: #0b1220;
     --border: rgba(148, 163, 184, 0.18);
     --text: #e2e8f0;
     --muted: rgba(226, 232, 240, 0.65);
@@ -497,6 +497,7 @@ body {
     position: relative !important;
     z-index: 9999 !important;
 }
+
 
 @media (max-width: 480px) {
     .pdv-wrap {

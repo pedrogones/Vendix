@@ -72,15 +72,15 @@ class AdminPanelProvider extends PanelProvider
             ])->assets([
                 Css::make('css-painel', asset('css/filament/painel.css')),
                 Css::make('css-pdv', asset('css/filament/pdv.css')),
-//                Js::make(
-//                    'html5-qrcode-lib',
-//                    'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'
-//                ),
-//
-//                Js::make(
-//                    'qr-scanner',
-//                    asset('js/filament/qr-scanner.js')
-//                )
+                Js::make(
+                    'html5-qrcode-lib',
+                    'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'
+                ),
+
+                Js::make(
+                    'qr-scanner',
+                    asset('js/filament/qr-scanner.js')
+                )
             ])
             ->plugins([FilamentEditProfilePlugin::make()
                 ->canAccess(fn () => auth()->user()?->can('edit-my-profile') ?? false)

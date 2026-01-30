@@ -407,14 +407,14 @@
             </div>
 
             <div class="action-grid">
-                <a class="action-card" href="{{ $urls['start_sale'] ?? '#' }}" wire:navigate>
+                <a class="action-card" href="{{ $urls['start_sale'] ?? '#' }}">
                     <div class="icon"><i class="fa-solid fa-cash-register"></i></div>
                     <div>
                         <strong>Nova venda</strong>
                         <span>Abra um atendimento rápido</span>
                     </div>
                 </a>
-                <a class="action-card" href="{{ $urls['products'] ?? '#' }}" wire:navigate>
+                <a class="action-card" href="{{ $urls['products'] ?? '#' }}">
                     <div class="icon" style="background: rgba(22, 163, 74, 0.12); color: var(--accent-2);">
                         <i class="fa-solid fa-boxes-stacked"></i>
                     </div>
@@ -423,7 +423,7 @@
                         <span>Cadastre ou atualize itens</span>
                     </div>
                 </a>
-                <a class="action-card" href="{{ $urls['stock'] ?? '#' }}" wire:navigate>
+                <a class="action-card" href="{{ $urls['stock'] ?? '#' }}">
                     <div class="icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning);">
                         <i class="fa-solid fa-warehouse"></i>
                     </div>
@@ -432,7 +432,7 @@
                         <span>Registre entradas e saídas</span>
                     </div>
                 </a>
-                <a class="action-card" href="{{ $urls['report'] ?? '#' }}" wire:navigate>
+                <a class="action-card" href="{{ $urls['report'] ?? '#' }}">
                     <div class="icon" style="background: rgba(37, 99, 235, 0.12); color: var(--accent);">
                         <i class="fa-solid fa-file-lines"></i>
                     </div>
@@ -623,3 +623,4 @@
         </script>
     @endonce
 </x-filament-panels::page>
+

@@ -29,6 +29,7 @@ class UserResource extends BaseAclResource
     protected static string $permissionEntity = 'users';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
+    protected static string|null|\UnitEnum $navigationGroup = 'Seguranca';
 
     protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $modelLabel = 'Usuário';
@@ -138,3 +139,4 @@ class UserResource extends BaseAclResource
     }
 
 }
+

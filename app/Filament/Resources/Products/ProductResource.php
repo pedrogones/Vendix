@@ -44,6 +44,7 @@ class ProductResource extends BaseAclResource
     protected static ?string $model = Product::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
+    protected static string|null|\UnitEnum $navigationGroup = 'Produtos';
 
     protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $modelLabel = 'Produto';
@@ -399,3 +400,4 @@ class ProductResource extends BaseAclResource
 
 
 }
+

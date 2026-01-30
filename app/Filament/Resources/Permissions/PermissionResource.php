@@ -31,6 +31,7 @@ class PermissionResource extends BaseAclResource
     protected static ?string $model = Permission::class;
     protected static string $permissionEntity = 'permissions';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::LockOpen;
+    protected static string|null|\UnitEnum $navigationGroup = 'Seguranca';
 
     protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $modelLabel = 'Permissão';
@@ -95,3 +96,5 @@ class PermissionResource extends BaseAclResource
     }
 
 }
+
+

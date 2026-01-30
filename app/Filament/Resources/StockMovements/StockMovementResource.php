@@ -49,6 +49,7 @@ class StockMovementResource extends BaseAclResource
     protected static ?string $model = StockMovement::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;
+    protected static string|null|\UnitEnum $navigationGroup = 'Estoque';
 
     protected static ?string $recordTitleAttribute = 'id';
     protected static ?string $modelLabel = 'Movimentação de estoque';
@@ -198,3 +199,4 @@ class StockMovementResource extends BaseAclResource
         ];
     }
 }
+

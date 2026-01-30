@@ -7,7 +7,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Services\Stocks\ConfirmSaleService;
 use Filament\Forms;
-use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -21,6 +21,7 @@ class StartSale extends Page implements HasForms
     use InteractsWithForms;
 
     protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedShoppingCart;
+    protected static string|null|\UnitEnum $navigationGroup = 'Vendas';
     protected static string|null|\BackedEnum $activeNavigationIcon = Heroicon::OutlinedShoppingCart;
     protected static ?string $title = 'Iniciar Venda';
     protected static ?string $navigationLabel = 'Iniciar Venda';
@@ -32,65 +33,56 @@ class StartSale extends Page implements HasForms
         return auth()->user()?->can('create-sales') ?? false;
     }
 
-    public bool $started = false;
-
     public ?Sale $sale = null;
 
-    public array $startData = [
-        'has_cpf' => false,
-        'cpf' => null,
-    ];
-
     public array $saleData = [
+        'cpf' => null,
         'product_id' => null,
-        'product_search' => null,
         'quantity' => 1,
         'discount' => 0,
     ];
 
-    public array $productSearchResults = [];
-
     protected function getForms(): array
     {
         return [
-            'startForm',
             'saleForm',
         ];
     }
 
     public function mount(): void
     {
-        $this->startForm->fill($this->startData);
+        $this->ensureSaleExists();
         $this->saleForm->fill($this->saleData);
-    }
-
-    protected function startForm(Schema $schema): Schema
-    {
-        return $schema
-            ->schema([
-                Forms\Components\TextInput::make('cpf')
-                    ->label('CPF para identificação do cliente')
-                    ->placeholder('Opcional')
-                    ->mask('999.999.999-99')
-                    ->helperText('Se informar, facilita histórico de compra e trocas futuras.')
-                    ->dehydrateStateUsing(fn (?string $state) => $state ? preg_replace('/\D+/', '', $state) : null),
-            ])
-            ->statePath('startData');
     }
 
     public function saleForm(Schema $schema): Schema
     {
         return $schema
             ->schema([
-                TextInput::make('product_search')
-                    ->label('Produto')
-                    ->placeholder('Digite nome ou código de barras')
-                    ->debounce(300)
+                TextInput::make('cpf')
+                    ->label('CPF do cliente (opcional)')
+                    ->placeholder('Digite se quiser identificar')
+                    ->mask('999.999.999-99')
+                    ->helperText('Se informar, facilita historico de compra e trocas futuras.')
+                    ->dehydrateStateUsing(fn (?string $state) => $state ? preg_replace('/\D+/', '', $state) : null)
                     ->live()
-                    ->afterStateUpdated(fn ($state) => $this->updatedSaleDataProductSearch($state))
-                    ->required(),
+                    ->afterStateUpdated(fn ($state) => $this->handleCpfUpdated($state)),
 
-                Hidden::make('product_id')
+                Select::make('product_id')
+                    ->label('Produto')
+                    ->placeholder('Digite o codigo ou nome do produto')
+                    ->searchable()
+                    ->getSearchResultsUsing(fn (string $search) =>
+                        Product::query()
+                            ->where('name', 'like', "%{$search}%")
+                            ->orWhere('barcode', 'like', "%{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%")
+                            ->limit(20)
+                            ->pluck('name', 'id')
+                    )
+                    ->getOptionLabelUsing(fn ($value): ?string =>
+                        Product::find($value)?->name
+                    )
                     ->required(),
 
                 TextInput::make('quantity')
@@ -108,90 +100,40 @@ class StartSale extends Page implements HasForms
                     ->minValue(0)
                     ->default(0)
                     ->live()
-                    ->helperText('Se não tiver desconto, deixe 0.'),
+                    ->helperText('Se nao tiver desconto, deixe 0.'),
             ])
             ->statePath('saleData');
     }
 
-    public function updatedSaleDataProductSearch(?string $value): void
+    protected function ensureSaleExists(): void
     {
-        $search = trim((string) $value);
-
-        if ($search === '' || mb_strlen($search) < 2) {
-            $this->productSearchResults = [];
+        if ($this->sale) {
             return;
-        }
-
-        $results = Product::query()
-            ->where('name', 'like', "%{$search}%")
-            ->orWhere('barcode', 'like', "%{$search}%")
-            ->orWhere('sku', 'like', "%{$search}%")
-            ->limit(8)
-            ->get();
-
-        $this->productSearchResults = $results->map(fn (Product $product) => [
-            'id' => $product->id,
-            'name' => $product->name,
-            'barcode' => $product->barcode,
-            'stock' => $product->stock,
-            'price' => (float) $product->final_price,
-        ])->toArray();
-    }
-
-    public function selectProduct(int $productId): void
-    {
-        $product = Product::find($productId);
-
-        if (! $product || ! $product->is_active) {
-            Notification::make()
-                ->title('Produto indisponível')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $this->saleData['product_id'] = $product->id;
-        $this->saleData['product_search'] = $product->name;
-        $this->productSearchResults = [];
-
-        $this->saleForm->fill($this->saleData);
-    }
-
-    public function startSale(): void
-    {
-        $this->startForm->validate();
-
-        $cpf = $this->startData['cpf'] ?? null;
-
-        if (!empty($this->startData['has_cpf']) && !empty($this->startData['cpf'])) {
-            $cpf = preg_replace('/\D+/', '', $this->startData['cpf']);
-        }
-
-        $clientId = null;
-
-        if ($cpf) {
-            $client = Client::firstOrCreate(['cpf' => $cpf]);
-            $clientId = $client->id;
         }
 
         $this->sale = Sale::create([
             'status' => 'draft',
             'user_id' => auth()->id(),
-            'client_id' => $clientId,
+            'client_id' => null,
             'total' => 0,
         ]);
+    }
 
-        $this->started = true;
+    protected function handleCpfUpdated(?string $value): void
+    {
+        $cpf = $value ? preg_replace('/\D+/', '', $value) : null;
 
-        $this->resetSaleForm();
-        $this->sale->load('items.product');
+        if (! $cpf || ! $this->sale) {
+            return;
+        }
+
+        $client = Client::firstOrCreate(['cpf' => $cpf]);
+        $this->sale->update(['client_id' => $client->id]);
     }
 
     public function addItem(): void
     {
-        if (!$this->sale) {
-            return;
-        }
+        $this->ensureSaleExists();
 
         $this->validate([
             'saleData.product_id' => 'required|exists:products,id',
@@ -205,7 +147,7 @@ class StartSale extends Page implements HasForms
 
         if (! $product || ! $product->is_active) {
             Notification::make()
-                ->title('Produto indisponível')
+                ->title('Produto indisponivel')
                 ->danger()
                 ->send();
             return;
@@ -214,7 +156,7 @@ class StartSale extends Page implements HasForms
         if ($product->stock < $quantity) {
             Notification::make()
                 ->title('Estoque insuficiente')
-                ->body("Disponível: {$product->stock}")
+                ->body("Disponivel: {$product->stock}")
                 ->danger()
                 ->send();
             return;
@@ -239,7 +181,7 @@ class StartSale extends Page implements HasForms
 
     public function removeItem(int $itemId): void
     {
-        if (!$this->sale) {
+        if (! $this->sale) {
             return;
         }
 
@@ -259,13 +201,12 @@ class StartSale extends Page implements HasForms
     protected function resetSaleForm(): void
     {
         $this->saleData = [
+            'cpf' => null,
             'product_id' => null,
-            'product_search' => null,
             'quantity' => 1,
             'discount' => 0,
         ];
 
-        $this->productSearchResults = [];
         $this->saleForm->fill($this->saleData);
     }
 
@@ -301,12 +242,10 @@ class StartSale extends Page implements HasForms
                 ->success()
                 ->send();
 
-            $this->reset(['started', 'sale']);
-            $this->startData = ['has_cpf' => false, 'cpf' => null];
-            $this->saleData = ['product_id' => null, 'product_search' => null, 'quantity' => 1, 'discount' => 0];
-            $this->productSearchResults = [];
-            $this->startForm->fill($this->startData);
+            $this->sale = null;
+            $this->saleData = ['cpf' => null, 'product_id' => null, 'quantity' => 1, 'discount' => 0];
             $this->saleForm->fill($this->saleData);
+            $this->ensureSaleExists();
         } catch (\DomainException $e) {
             Notification::make()
                 ->title($e->getMessage())
@@ -315,3 +254,6 @@ class StartSale extends Page implements HasForms
         }
     }
 }
+
+
+

@@ -20,6 +20,7 @@ class ControlPanel extends Page
     protected static ?string $title = 'Painel de Controle';
     protected static ?string $navigationLabel = 'Painel de Controle';
     protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedHome;
+    protected static string|null|\UnitEnum $navigationGroup = 'Painel';
     protected static ?int $navigationSort = -2;
 
     protected string $view = 'filament.pages.control-panel';
@@ -149,3 +150,4 @@ class ControlPanel extends Page
         return [$labels, $values];
     }
 }
+

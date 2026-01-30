@@ -32,6 +32,7 @@ class SaleResource extends BaseAclResource
     protected static ?string $model = Sale::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
+    protected static string|null|\UnitEnum $navigationGroup = 'Vendas';
 
     protected static ?string $recordTitleAttribute = 'id';
     protected static ?string $modelLabel = 'Venda';
@@ -156,3 +157,4 @@ class SaleResource extends BaseAclResource
             ]);
     }
 }
+
