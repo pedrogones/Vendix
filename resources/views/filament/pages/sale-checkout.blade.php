@@ -6,13 +6,18 @@
             <div class="col-span-2 space-y-4">
 
                 <x-filament::card>
-                    <x-filament::select
+                    <select
                         wire:model="productId"
-                        placeholder="Digite o código ou nome do produto"
-                        :options="\App\Models\Product::pluck('name','id')"
-                    />
+                        class="w-full rounded-md border border-gray-300 px-3 py-2"
+                    >
+                        <option value="">Selecione um produto</option>
 
-                    @if($productId)
+                        @foreach(\App\Models\Product::orderBy('name')->get(['id','name']) as $product)
+                            <option value="{{ $product->id }}">{{ $product->name }}</option>
+                        @endforeach
+                    </select>
+
+                @if($productId)
                         @php $product = \App\Models\Product::find($productId); @endphp
 
                         <div class="grid grid-cols-4 gap-4 mt-4">

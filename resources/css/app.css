@@ -12,3 +12,15 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Vendix checkout select fixes */
+select[wire\:model="productId"] {
+    background-color: #ffffff;
+    color: #0f172a;
+    position: relative;
+    z-index: 40;
+}
+select[wire\:model="productId"] option {
+    background-color: #ffffff;
+    color: #0f172a;
+}
