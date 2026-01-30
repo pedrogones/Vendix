@@ -40,7 +40,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->authGuard('web')
-            ->login()
+            ->login(Login::class)
+            ->registration()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -89,3 +90,4 @@ class AdminPanelProvider extends PanelProvider
                 ->shouldShowDeleteAccountForm(false),]);
     }
 }
+

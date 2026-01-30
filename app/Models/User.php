@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Filament\Models\Contracts\HasAvatar;
+use Filament\Panel;
 use Filament\Panel\Concerns\HasUserMenu;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -82,7 +83,10 @@ class User extends Authenticatable implements HasAvatar
 
         return asset('storage/' . $this->avatar_url);
     }
-
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->hasRole('Admin');
+    }
 //    public function setAvatarAttribute($value): void
 //    {
 //        $this->attributes['avatar'] = $value ? 'avatars/' . $value : null;
