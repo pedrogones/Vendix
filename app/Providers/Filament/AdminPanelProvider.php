@@ -71,8 +71,8 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
                 RedirectClientFromFilament::class
             ])->assets([
-                Css::make('css-painel', asset('css/filament/painel.css')),
-                Css::make('css-pdv', asset('css/filament/pdv.css')),
+                Css::make('css-painel', secure_asset('css/filament/painel.css')),
+                Css::make('css-pdv', secure_asset('css/filament/pdv.css')),
                 Js::make(
                     'html5-qrcode-lib',
                     'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'
@@ -80,7 +80,7 @@ class AdminPanelProvider extends PanelProvider
 
                 Js::make(
                     'qr-scanner',
-                    asset('js/filament/qr-scanner.js')
+                    secure_asset('js/filament/qr-scanner.js')
                 )
             ])
             ->plugins([FilamentEditProfilePlugin::make()
