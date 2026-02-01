@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -151,5 +153,14 @@ class AclSeeder extends Seeder
             'view-clients',
             'view-any-clients',
         ]);
+
+        $adminUser = User::updateOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('123'),
+            ]
+        );
+        $adminUser->assignRole('Admin');
     }
 }
