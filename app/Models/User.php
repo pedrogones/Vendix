@@ -19,6 +19,8 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles;
 
+    protected string $guard_name = 'web';
+
     /**
      * The attributes that are mass assignable.
      *

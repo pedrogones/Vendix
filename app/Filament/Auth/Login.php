@@ -5,6 +5,7 @@ namespace App\Filament\Auth;
 use App\Models\Client;
 use App\Models\User;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
 use Filament\Auth\Pages\Login as BaseLogin;
 use Illuminate\Support\Facades\Auth;
@@ -38,15 +39,15 @@ class Login extends BaseLogin
     {
         $data = $this->form->getState();
 
-        if (! auth()->attempt([
+        if (! Filament::auth()->attempt([
             'email' => $data['email'],
             'password' => $data['password'],
         ], $data['remember'] ?? false)) {
             $this->throwFailureValidationException();
         }
 
-        if (auth()->user()->hasRole('Cliente')) {
-            auth()->logout();
+        if (Filament::auth()->user()->hasRole('Cliente')) {
+            Filament::auth()->logout();
             throw ValidationException::withMessages([
                 'email' => 'Usuário sem permissão para acessar o painel.',
             ]);

@@ -73,14 +73,23 @@ class AclSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+            Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web',
+            ]);
         }
 
-        $admin = Role::firstOrCreate(['name' => 'Admin']);
+        $admin = Role::firstOrCreate([
+            'name' => 'Admin',
+            'guard_name' => 'web',
+        ]);
         $admin->syncPermissions(Permission::all());
 
         // GESTOR
-        $manager = Role::firstOrCreate(['name' => 'Gestor']);
+        $manager = Role::firstOrCreate([
+            'name' => 'Gestor',
+            'guard_name' => 'web',
+        ]);
         $manager->syncPermissions([
             'view-dashboard',
 
@@ -105,7 +114,10 @@ class AclSeeder extends Seeder
         ]);
 
         // OPERADOR
-        $operator = Role::firstOrCreate(['name' => 'Operador']);
+        $operator = Role::firstOrCreate([
+            'name' => 'Operador',
+            'guard_name' => 'web',
+        ]);
         $operator->syncPermissions([
             'view-dashboard',
 
@@ -120,7 +132,10 @@ class AclSeeder extends Seeder
         ]);
 
         // LEITOR
-        $viewer = Role::firstOrCreate(['name' => 'Leitor']);
+        $viewer = Role::firstOrCreate([
+            'name' => 'Leitor',
+            'guard_name' => 'web',
+        ]);
         $viewer->syncPermissions([
             'view-dashboard',
 
