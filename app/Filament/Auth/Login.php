@@ -56,11 +56,9 @@ class Login extends BaseLogin
         return null;
     }
 
-
-
     public function getSubheading(): string | Htmlable | null
     {
-        return new HtmlString('Não tem conta? ' . $this->registerAction->toHtml());
+        return new HtmlString('NÃ£o tem conta? ' . $this->registerAction->toHtml());
     }
 
     public function registerAction(): Action
@@ -72,22 +70,3 @@ class Login extends BaseLogin
             ->extraAttributes(['class' => 'underline font-semibold']);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
