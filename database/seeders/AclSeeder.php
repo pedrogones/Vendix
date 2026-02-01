@@ -85,6 +85,12 @@ class AclSeeder extends Seeder
         ]);
         $admin->syncPermissions(Permission::all());
 
+        // CLIENTE
+        Role::firstOrCreate([
+            'name' => 'Cliente',
+            'guard_name' => 'web',
+        ]);
+
         // GESTOR
         $manager = Role::firstOrCreate([
             'name' => 'Gestor',
