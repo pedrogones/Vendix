@@ -37,17 +37,18 @@ class ClientAuthController extends Controller
 
         Auth::login($client->user); // login no guard default (web)
 
-        if ($client->user->hasRole('Cliente')) {
-            return redirect()->route('initial-page');
-        } else {
+        if ($client->user->can('view-dashboard')) {
             return redirect()->route('filament.admin.pages.dashboard');
         }
+
+        return redirect()->route('initial-page');
 
     }
 
     public function logout(Request $request)
     {
         Auth::logout();
+        $request->session()->flush();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -88,11 +89,11 @@ class ClientAuthController extends Controller
                 $user->syncRoles(['Cliente']);
             }
 
-            if ($user->hasRole('Cliente')) {
-                return redirect()->route('initial-page');
-            } elseif ($user->hasRole('Admin')) {
+            if ($user->can('view-dashboard')) {
                 return redirect()->route('filament.admin.pages.dashboard');
             }
+
+            return redirect()->route('initial-page');
 
 
         } catch (\Throwable $e) {
@@ -104,4 +105,3 @@ class ClientAuthController extends Controller
     }
 
 }
-

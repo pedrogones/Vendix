@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Auth\Login;
+use App\Filament\Auth\Register;
 use App\Filament\Pages\ControlPanel;
 use App\Filament\Resources\Profiles\ProfileResource;
 use App\Http\Middleware\RedirectClientFromFilament;
@@ -41,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->authGuard('web')
             ->login(Login::class)
-            ->registration()
+            ->registration(Register::class)
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -90,4 +91,3 @@ class AdminPanelProvider extends PanelProvider
                 ->shouldShowDeleteAccountForm(false),]);
     }
 }
-

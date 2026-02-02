@@ -20,8 +20,63 @@
                 --accent-3: #06b6d4;
                 --warning: #f59e0b;
                 --danger: #ef4444;
+                --glow-1: rgba(37, 99, 235, 0.12);
+                --glow-2: rgba(16, 185, 129, 0.12);
+                --glow-3: rgba(6, 182, 212, 0.12);
+                --pill-bg: rgba(255, 255, 255, 0.8);
+                --surface-2: rgba(15, 23, 42, 0.04);
+                --surface-3: rgba(37, 99, 235, 0.06);
+                --surface-4: rgba(37, 99, 235, 0.2);
+                --accent-soft: rgba(37, 99, 235, 0.1);
+                --accent-2-soft: rgba(16, 185, 129, 0.12);
+                --accent-3-soft: rgba(6, 182, 212, 0.12);
+                --warning-soft: rgba(245, 158, 11, 0.12);
+                --danger-soft: rgba(239, 68, 68, 0.12);
+                --shadow-1: 0 12px 24px rgba(15, 23, 42, 0.08);
+                --shadow-2: 0 10px 24px rgba(15, 23, 42, 0.08);
+                --shadow-3: 0 10px 20px rgba(15, 23, 42, 0.06);
+                --chart-text: #0f172a;
+                --chart-grid: rgba(15, 23, 42, 0.08);
+                --chart-muted: #94a3b8;
+                --chart-blue-fill: rgba(37, 99, 235, 0.15);
+                --chart-green-fill: rgba(16, 185, 129, 0.7);
+                --chart-danger-fill: rgba(239, 68, 68, 0.6);
                 font-family: "Sora", sans-serif;
                 color: var(--text);
+            }
+
+            :root.dark .sales-dashboard {
+                --bg: #0b1020;
+                --card: #0f172a;
+                --text: #e2e8f0;
+                --muted: #94a3b8;
+                --border: rgba(148, 163, 184, 0.16);
+                --accent: #60a5fa;
+                --accent-2: #34d399;
+                --accent-3: #22d3ee;
+                --warning: #fbbf24;
+                --danger: #f87171;
+                --glow-1: rgba(96, 165, 250, 0.22);
+                --glow-2: rgba(52, 211, 153, 0.18);
+                --glow-3: rgba(34, 211, 238, 0.18);
+                --pill-bg: rgba(15, 23, 42, 0.75);
+                --surface-2: rgba(148, 163, 184, 0.12);
+                --surface-3: rgba(96, 165, 250, 0.14);
+                --surface-4: rgba(96, 165, 250, 0.28);
+                --accent-soft: rgba(96, 165, 250, 0.22);
+                --accent-2-soft: rgba(52, 211, 153, 0.2);
+                --accent-3-soft: rgba(34, 211, 238, 0.2);
+                --warning-soft: rgba(251, 191, 36, 0.18);
+                --danger-soft: rgba(248, 113, 113, 0.18);
+                --shadow-1: 0 12px 30px rgba(2, 6, 23, 0.6);
+                --shadow-2: 0 10px 28px rgba(2, 6, 23, 0.55);
+                --shadow-3: 0 10px 22px rgba(2, 6, 23, 0.5);
+                --chart-text: #e2e8f0;
+                --chart-grid: rgba(148, 163, 184, 0.25);
+                --chart-muted: rgba(148, 163, 184, 0.7);
+                --chart-blue-fill: rgba(96, 165, 250, 0.25);
+                --chart-green-fill: rgba(52, 211, 153, 0.7);
+                --chart-danger-fill: rgba(248, 113, 113, 0.65);
             }
 
             .sales-dashboard * {
@@ -30,9 +85,9 @@
 
             .sales-shell {
                 background:
-                    radial-gradient(900px 400px at 10% -10%, rgba(37, 99, 235, 0.12), transparent 55%),
-                    radial-gradient(800px 400px at 90% 0%, rgba(16, 185, 129, 0.12), transparent 50%),
-                    radial-gradient(600px 400px at 70% 90%, rgba(6, 182, 212, 0.12), transparent 50%),
+                    radial-gradient(900px 400px at 10% -10%, var(--glow-1), transparent 55%),
+                    radial-gradient(800px 400px at 90% 0%, var(--glow-2), transparent 50%),
+                    radial-gradient(600px 400px at 70% 90%, var(--glow-3), transparent 50%),
                     var(--bg);
                 border: 1px solid var(--border);
                 border-radius: 24px;
@@ -89,11 +144,12 @@
                 gap: 8px;
                 padding: 8px 14px;
                 border-radius: 999px;
-                background: rgba(255, 255, 255, 0.8);
+                background: var(--pill-bg);
                 border: 1px solid var(--border);
                 font-size: 12px;
                 color: var(--muted);
                 font-weight: 500;
+                backdrop-filter: blur(6px);
             }
 
             .pill span {
@@ -115,7 +171,7 @@
                 border: 1px solid var(--border);
                 border-radius: 18px;
                 padding: 18px;
-                box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+                box-shadow: var(--shadow-1);
                 position: relative;
                 overflow: hidden;
                 animation: rise 0.6s ease both;
@@ -128,7 +184,7 @@
                 width: 120px;
                 height: 120px;
                 border-radius: 50%;
-                background: rgba(37, 99, 235, 0.08);
+                background: var(--accent-soft);
             }
 
             .kpi-card .icon {
@@ -137,9 +193,19 @@
                 display: grid;
                 place-items: center;
                 border-radius: 14px;
-                background: rgba(37, 99, 235, 0.1);
+                background: var(--accent-soft);
                 color: var(--accent);
                 font-size: 18px;
+            }
+
+            .kpi-card .icon.accent-2 {
+                background: var(--accent-2-soft);
+                color: var(--accent-2);
+            }
+
+            .kpi-card .icon.accent-3 {
+                background: var(--accent-3-soft);
+                color: var(--accent-3);
             }
 
             .kpi-card .label {
@@ -169,7 +235,7 @@
                 border: 1px solid var(--border);
                 border-radius: 20px;
                 padding: 18px;
-                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+                box-shadow: var(--shadow-2);
                 animation: rise 0.6s ease both;
             }
 
@@ -212,7 +278,7 @@
                 border: 1px solid var(--border);
                 border-radius: 18px;
                 padding: 16px;
-                box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+                box-shadow: var(--shadow-3);
                 position: relative;
             }
 
@@ -222,7 +288,7 @@
                 right: 14px;
                 padding: 4px 10px;
                 border-radius: 999px;
-                background: rgba(16, 185, 129, 0.12);
+                background: var(--accent-2-soft);
                 color: var(--accent-2);
                 font-size: 11px;
                 font-weight: 600;
@@ -257,7 +323,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                background: rgba(15, 23, 42, 0.04);
+                background: var(--surface-2);
                 border-radius: 12px;
                 padding: 10px 12px;
                 font-size: 13px;
@@ -286,7 +352,7 @@
                 gap: 6px;
                 padding: 10px 12px;
                 border-radius: 14px;
-                background: rgba(37, 99, 235, 0.06);
+                background: var(--surface-3);
             }
 
             .favorite-row span {
@@ -297,8 +363,12 @@
             .favorite-bar {
                 height: 6px;
                 border-radius: 999px;
-                background: rgba(37, 99, 235, 0.2);
+                background: var(--surface-4);
                 overflow: hidden;
+            }
+
+            .favorites .text-gray-500 {
+                color: var(--muted);
             }
 
             .favorite-bar div {
@@ -342,14 +412,14 @@
                     <div class="value">R$ {{ number_format($data['kpis']['total_sales'] ?? 0, 2, ',', '.') }}</div>
                 </div>
                 <div class="kpi-card" style="animation-delay: 120ms;">
-                    <div class="icon" style="background: rgba(16, 185, 129, 0.12); color: var(--accent-2);">
+                    <div class="icon accent-2">
                         <i class="fa-solid fa-receipt"></i>
                     </div>
                     <div class="label">Ticket médio</div>
                     <div class="value">R$ {{ number_format($data['kpis']['ticket'] ?? 0, 2, ',', '.') }}</div>
                 </div>
                 <div class="kpi-card" style="animation-delay: 240ms;">
-                    <div class="icon" style="background: rgba(6, 182, 212, 0.12); color: var(--accent-3);">
+                    <div class="icon accent-3">
                         <i class="fa-solid fa-boxes-stacked"></i>
                     </div>
                     <div class="label">Produtos cadastrados</div>
@@ -493,13 +563,38 @@
         <script>
             const dashboardPayload = @json($data);
 
-            const chartTheme = {
-                text: '#0f172a',
-                grid: 'rgba(15, 23, 42, 0.08)',
-                blue: '#2563eb',
-                green: '#10b981',
-                teal: '#06b6d4',
-                amber: '#f59e0b',
+            const getChartTheme = () => {
+                const root = document.querySelector('.sales-dashboard');
+                if (!root) {
+                    return {
+                        text: '#0f172a',
+                        grid: 'rgba(15, 23, 42, 0.08)',
+                        blue: '#2563eb',
+                        green: '#10b981',
+                        teal: '#06b6d4',
+                        amber: '#f59e0b',
+                        muted: '#94a3b8',
+                        blueFill: 'rgba(37, 99, 235, 0.15)',
+                        greenFill: 'rgba(16, 185, 129, 0.7)',
+                        dangerFill: 'rgba(239, 68, 68, 0.6)',
+                    };
+                }
+
+                const styles = getComputedStyle(root);
+                const pick = (name, fallback) => styles.getPropertyValue(name).trim() || fallback;
+
+                return {
+                    text: pick('--chart-text', '#0f172a'),
+                    grid: pick('--chart-grid', 'rgba(15, 23, 42, 0.08)'),
+                    blue: pick('--accent', '#2563eb'),
+                    green: pick('--accent-2', '#10b981'),
+                    teal: pick('--accent-3', '#06b6d4'),
+                    amber: pick('--warning', '#f59e0b'),
+                    muted: pick('--chart-muted', '#94a3b8'),
+                    blueFill: pick('--chart-blue-fill', 'rgba(37, 99, 235, 0.15)'),
+                    greenFill: pick('--chart-green-fill', 'rgba(16, 185, 129, 0.7)'),
+                    dangerFill: pick('--chart-danger-fill', 'rgba(239, 68, 68, 0.6)'),
+                };
             };
 
             const initSalesDashboardCharts = () => {
@@ -516,6 +611,8 @@
                     return;
                 }
 
+                const chartTheme = getChartTheme();
+
                 // Vendas por período
                 window.salesDashboardCharts.push(new Chart(salesCtx, {
                     type: 'line',
@@ -525,7 +622,7 @@
                             label: 'Vendas (R$)',
                             data: dashboardPayload.charts?.sales?.values ?? [],
                             borderColor: chartTheme.blue,
-                            backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                            backgroundColor: chartTheme.blueFill,
                             fill: true,
                             tension: 0.35,
                             pointRadius: 3,
@@ -557,7 +654,7 @@
                         labels: dashboardPayload.charts?.categories?.labels ?? [],
                         datasets: [{
                             data: dashboardPayload.charts?.categories?.values ?? [],
-                            backgroundColor: [chartTheme.blue, chartTheme.green, chartTheme.teal, chartTheme.amber, '#94a3b8'],
+                            backgroundColor: [chartTheme.blue, chartTheme.green, chartTheme.teal, chartTheme.amber, chartTheme.muted],
                             borderWidth: 0,
                         }],
                     },
@@ -582,7 +679,7 @@
                         datasets: [{
                             label: 'Unidades',
                             data: dashboardPayload.charts?.top_products?.values ?? [],
-                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            backgroundColor: chartTheme.greenFill,
                             borderRadius: 8,
                         }],
                     },
@@ -605,7 +702,7 @@
                         labels: dashboardPayload.charts?.stock?.labels ?? [],
                         datasets: [{
                             data: dashboardPayload.charts?.stock?.values ?? [],
-                            backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.6)'],
+                            backgroundColor: [chartTheme.greenFill, chartTheme.dangerFill],
                             borderRadius: 10,
                         }],
                     },
@@ -621,8 +718,28 @@
                 }));
             };
 
-            document.addEventListener('DOMContentLoaded', initSalesDashboardCharts);
-            document.addEventListener('livewire:navigated', initSalesDashboardCharts);
+            const observeThemeChanges = () => {
+                if (window.salesDashboardThemeObserver) {
+                    return;
+                }
+
+                window.salesDashboardThemeObserver = new MutationObserver(() => {
+                    initSalesDashboardCharts();
+                });
+                window.salesDashboardThemeObserver.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['class'],
+                });
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                initSalesDashboardCharts();
+                observeThemeChanges();
+            });
+            document.addEventListener('livewire:navigated', () => {
+                initSalesDashboardCharts();
+                observeThemeChanges();
+            });
         </script>
     @endonce
 </x-filament-panels::page>

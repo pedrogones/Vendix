@@ -25,10 +25,10 @@ class ControlPanel extends Page
 
     protected string $view = 'filament.pages.control-panel';
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()?->can('view-dashboard') ?? false;
-    }
+//    public static function canAccess(): bool
+//    {
+//        return auth()->user()?->can('view-dashboard') ?? false;
+//    }
 
     public static function shouldRegisterNavigation(): bool
     {

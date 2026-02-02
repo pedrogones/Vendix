@@ -10,5 +10,4 @@ Route::post('login', [ClientAuthController::class, 'login']);
 
 Route::get('register', fn () => view('portal.register'))->name('portal.register');
 Route::post('register', [ClientAuthController::class, 'store'])->name('register.store');
-//Route::get('logout', [ClientAuthController::class, 'logout'])->name('register.logout');
-
+Route::match(['get', 'post'], 'admin/logout', [ClientAuthController::class, 'logout'])->name('portal.logout');

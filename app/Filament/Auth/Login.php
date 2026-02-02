@@ -46,7 +46,9 @@ class Login extends BaseLogin
             $this->throwFailureValidationException();
         }
 
-        if (Filament::auth()->user()->hasRole('Cliente')) {
+        $user = Filament::auth()->user();
+
+        if (! $user || ! $user->canAccessPanel(Filament::getCurrentPanel())) {
             Filament::auth()->logout();
             throw ValidationException::withMessages([
                 'email' => 'Usuário sem permissão para acessar o painel.',
