@@ -2,18 +2,11 @@
 
 namespace App\Filament\Auth;
 
-use App\Models\Client;
-use App\Models\User;
 use Filament\Actions\Action;
-use Filament\Facades\Filament;
-use Filament\Forms\Components\TextInput;
 use Filament\Auth\Pages\Login as BaseLogin;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
 
 class Login extends BaseLogin
 {
@@ -30,32 +23,6 @@ class Login extends BaseLogin
                 ->password()
                 ->required(),
         ];
-    }
-
-    /**
-     * @throws ValidationException
-     */
-    public function authenticate(): ?\Filament\Auth\Http\Responses\Contracts\LoginResponse
-    {
-        $data = $this->form->getState();
-
-        if (! Filament::auth()->attempt([
-            'email' => $data['email'],
-            'password' => $data['password'],
-        ], $data['remember'] ?? false)) {
-            $this->throwFailureValidationException();
-        }
-
-        $user = Filament::auth()->user();
-
-        if (! $user || ! $user->canAccessPanel(Filament::getCurrentPanel())) {
-            Filament::auth()->logout();
-            throw ValidationException::withMessages([
-                'email' => 'Usuário sem permissão para acessar o painel.',
-            ]);
-        }
-
-        return null;
     }
 
     public function getSubheading(): string | Htmlable | null
