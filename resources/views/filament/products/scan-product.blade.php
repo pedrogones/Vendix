@@ -1,4 +1,4 @@
-<style>
+﻿<style>
     .qr-wrap {
         display: flex;
         flex-direction: column;
@@ -43,7 +43,75 @@
         color: #111827;
     }
 
-    /* garante que o container manda no tamanho */
+    .qr-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .2rem .6rem;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 600;
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .qr-badge--primary {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .qr-badge--success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .qr-badge--danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .qr-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: .75rem;
+        margin-bottom: .75rem;
+    }
+
+    .qr-control {
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+        font-size: .75rem;
+        color: #6b7280;
+    }
+
+    .qr-select {
+        min-width: 180px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        padding: 8px 10px;
+        font-size: .875rem;
+        color: #111827;
+    }
+
+    .qr-btn {
+        border: none;
+        border-radius: 10px;
+        background: #111827;
+        color: #ffffff;
+        padding: 8px 12px;
+        font-size: .875rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .qr-btn:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
     .qr-reader-box {
         position: relative;
         width: 100%;
@@ -54,14 +122,12 @@
         min-height: 220px;
     }
 
-    /* quando câmera ativa, mantém 16:9 e ocupa bem */
     .qr-reader-box.active {
         aspect-ratio: 16 / 9;
         height: auto;
         max-height: 45vh;
     }
 
-    /* força tudo que o html5-qrcode cria a ocupar o box */
     #qr-reader,
     #qr-reader > div,
     #qr-reader video,
@@ -71,19 +137,18 @@
         height: 100% !important;
     }
 
-    /* vídeo cobrindo certinho sem “sobrar” */
     #qr-reader video {
         object-fit: cover !important;
         border-radius: 16px;
     }
 
-    /* some com UI interna que o html5-qrcode coloca */
     #qr-reader__dashboard_section,
     #qr-reader__dashboard_section_csr,
     #qr-reader__dashboard_section_swaplink,
     #qr-reader__header_message {
         display: none !important;
     }
+
     .qr-reader-placeholder {
         position: absolute;
         inset: 0;
@@ -113,6 +178,7 @@
     .qr-actions {
         display: flex;
         justify-content: flex-end;
+        gap: .5rem;
         margin-top: 1rem;
     }
 
@@ -124,6 +190,20 @@
 
     .qr-input {
         flex: 1;
+    }
+
+    .qr-file {
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+    }
+
+    .qr-file input[type="file"] {
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        padding: .6rem .75rem;
+        font-size: .875rem;
     }
 
     .qr-debug {
@@ -161,12 +241,20 @@
                     Digitar
                 </button>
 
+                <button
+                    type="button"
+                    class="qr-tab"
+                    :class="{ 'active': tab === 'file' }"
+                    @click.prevent="tab = 'file'"
+                >
+                    Imagem
+                </button>
             </div>
         </div>
 
-        <x-filament::badge color="gray">
+        <span class="qr-badge" :class="'qr-badge--' + badgeColor">
             <span x-text="badgeText"></span>
-        </x-filament::badge>
+        </span>
     </div>
 
     <div
@@ -177,6 +265,34 @@
         <div>
             <x-filament::section>
                 <x-slot name="heading">Leitor</x-slot>
+
+                <div class="qr-toolbar">
+                    <label class="qr-control">
+                        <span>Modo</span>
+                        <select x-model="mode" class="qr-select">
+                            <option value="auto">Auto</option>
+                            <option value="barcode">Código de barras</option>
+                            <option value="qr">QR Code</option>
+                        </select>
+                    </label>
+
+                    <label class="qr-control" x-show="cameras.length > 1">
+                        <span>Câmera</span>
+                        <select x-model="cameraId" class="qr-select">
+                            <template x-for="(camera, index) in cameras" :key="camera.id">
+                                <option :value="camera.id" x-text="camera.label || `Câmera ${index + 1}`"></option>
+                            </template>
+                        </select>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="qr-btn"
+                        x-show="torchSupported"
+                        @click.prevent="toggleTorch()"
+                        x-text="torchOn ? 'Desligar flash' : 'Ligar flash'"
+                    ></button>
+                </div>
 
                 <div
                     class="qr-reader-box"
@@ -206,8 +322,7 @@
                     >
                         Abrir câmera
                     </x-filament::button>
-                </div>
-                <div class="qr-actions">
+
                     <x-filament::button
                         color="gray"
                         size="sm"
@@ -218,9 +333,9 @@
                     </x-filament::button>
                 </div>
 
-                <div id="qr-debug" class="qr-debug"></div>
-                <div id="qr-errors" class="qr-debug" style="white-space: pre-wrap;"></div>
-
+                <div class="qr-debug" x-text="helperText"></div>
+                <div data-qr-debug class="qr-debug"></div>
+                <div data-qr-errors class="qr-debug" style="white-space: pre-wrap;"></div>
             </x-filament::section>
         </div>
     </div>
@@ -230,7 +345,6 @@
         x-transition.opacity.duration.200ms
         style="display: none;"
     >
-
         <div>
             <x-filament::section>
                 <x-slot name="heading">Digitar código</x-slot>
@@ -256,9 +370,29 @@
                 </div>
 
                 <div class="qr-debug" x-text="helperText"></div>
-                <div id="qr-debug" class="qr-debug"></div>
-                <div id="qr-errors" class="qr-debug" style="white-space: pre-wrap;"></div>
+                <div data-qr-debug class="qr-debug"></div>
+                <div data-qr-errors class="qr-debug" style="white-space: pre-wrap;"></div>
+            </x-filament::section>
+        </div>
+    </div>
 
+    <div
+        x-show="tab === 'file'"
+        x-transition.opacity.duration.200ms
+        style="display: none;"
+    >
+        <div>
+            <x-filament::section>
+                <x-slot name="heading">Ler de imagem</x-slot>
+
+                <div class="qr-file">
+                    <input type="file" accept="image/*" x-on:change="scanFile($event)" />
+                    <span class="qr-debug">Selecione uma foto nítida do código.</span>
+                </div>
+
+                <div class="qr-debug" x-text="helperText"></div>
+                <div data-qr-debug class="qr-debug"></div>
+                <div data-qr-errors class="qr-debug" style="white-space: pre-wrap;"></div>
             </x-filament::section>
         </div>
     </div>
