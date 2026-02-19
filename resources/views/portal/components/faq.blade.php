@@ -1,52 +1,39 @@
-<section id="faq" class="bg-gradient-to-b from-white via-violet-50 to-white">
-    <div class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-        <h2 class="text-center text-3xl font-bold text-slate-900 sm:text-4xl">FAQ</h2>
-        <p class="mt-3 text-center text-lg text-slate-600">Duvidas comuns antes de comecar.</p>
+﻿<section id="faq" class="bg-slate-50 py-20">
+    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <h2 class="text-center text-4xl font-extrabold text-slate-900">Duvidas frequentes</h2>
+        <p class="mt-3 text-center text-lg text-slate-600">Respostas diretas para voce decidir com clareza.</p>
 
         <div class="mt-10 space-y-4">
-            <details class="group rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-md faq-item">
-                <summary class="flex cursor-pointer items-center justify-between text-base font-semibold text-slate-900">
-                    O que e o Vendix?
-                    <span class="text-violet-500 group-open:rotate-45 transition">+</span>
+            <details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <summary class="flex cursor-pointer items-center justify-between text-xl font-bold text-slate-900">
+                    O Vendix atende so varejo?
+                    <span class="text-violet-700 transition group-open:rotate-45">+</span>
                 </summary>
-                <div class="faq-content">
-                    <p class="mt-3 text-sm text-slate-600">
-                        Um sistema completo para controle de estoque, vendas e financeiro, feito para rotinas operacionais.
-                    </p>
-                </div>
+                <p class="mt-3 text-lg text-slate-600">Nao. Tambem atende distribuidores, operacoes com filiais, contadores e BPO financeiro.</p>
             </details>
-            <details class="group rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-md faq-item">
-                <summary class="flex cursor-pointer items-center justify-between text-base font-semibold text-slate-900">
-                    Consigo migrar meus dados atuais?
-                    <span class="text-violet-500 group-open:rotate-45 transition">+</span>
+
+            <details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <summary class="flex cursor-pointer items-center justify-between text-xl font-bold text-slate-900">
+                    Posso importar dados do sistema atual?
+                    <span class="text-violet-700 transition group-open:rotate-45">+</span>
                 </summary>
-                <div class="faq-content">
-                    <p class="mt-3 text-sm text-slate-600">
-                        Sim. Nosso time orienta a importacao de produtos, clientes e estoque.
-                    </p>
-                </div>
+                <p class="mt-3 text-lg text-slate-600">Sim. Produtos, clientes e estoque podem ser migrados com apoio da equipe de implantacao.</p>
             </details>
-            <details class="group rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-md faq-item">
-                <summary class="flex cursor-pointer items-center justify-between text-base font-semibold text-slate-900">
-                    O sistema funciona para redes com filiais?
-                    <span class="text-violet-500 group-open:rotate-45 transition">+</span>
+
+            <details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <summary class="flex cursor-pointer items-center justify-between text-xl font-bold text-slate-900">
+                    Funciona no celular e no computador?
+                    <span class="text-violet-700 transition group-open:rotate-45">+</span>
                 </summary>
-                <div class="faq-content">
-                    <p class="mt-3 text-sm text-slate-600">
-                        Funciona sim. Voce pode controlar matriz e filiais no mesmo painel, com estoque separado.
-                    </p>
-                </div>
+                <p class="mt-3 text-lg text-slate-600">Sim. Voce escolhe o plano ideal e acessa no dispositivo que fizer mais sentido para sua rotina.</p>
             </details>
-            <details class="group rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-md faq-item">
-                <summary class="flex cursor-pointer items-center justify-between text-base font-semibold text-slate-900">
-                    Preciso de cartao para testar?
-                    <span class="text-violet-500 group-open:rotate-45 transition">+</span>
+
+            <details class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <summary class="flex cursor-pointer items-center justify-between text-xl font-bold text-slate-900">
+                    Tem periodo de teste?
+                    <span class="text-violet-700 transition group-open:rotate-45">+</span>
                 </summary>
-                <div class="faq-content">
-                    <p class="mt-3 text-sm text-slate-600">
-                        Nao. O teste e gratuito por 7 dias, sem compromisso.
-                    </p>
-                </div>
+                <p class="mt-3 text-lg text-slate-600">Tem sim. Voce pode avaliar o sistema, validar o fluxo e decidir sem risco.</p>
             </details>
         </div>
     </div>

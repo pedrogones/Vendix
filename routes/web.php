@@ -1,10 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\ClientAuthController;
-use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
+use App\Http\Controllers\VitrineController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [\App\Http\Controllers\Portal\HomeController::class, 'index'])->name('initial-page');
+Route::get('/vendix-preview', [VitrineController::class, 'index'])->name('vitrine.preview');
+Route::post('/chatbot/message', [ChatbotController::class, 'message'])->name('chatbot.message');
+
 Route::get('login', fn () => view('portal.login'))->name('portal.login');
 Route::post('login', [ClientAuthController::class, 'login']);
 

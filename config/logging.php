@@ -123,6 +123,14 @@ return [
             'handler' => NullHandler::class,
         ],
 
+        'gemini' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/gemini.log'),
+            'level' => env('GEMINI_LOG_LEVEL', 'debug'),
+            'days' => env('GEMINI_LOG_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
@@ -130,3 +138,4 @@ return [
     ],
 
 ];
+
