@@ -33,29 +33,31 @@
 
         .category-chip {
             display: inline-flex;
-            width: 100%;
+            width: auto;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            border-radius: 12px;
-            border: 1px solid #e4d8ff;
-            background: #ffffff;
-            color: #4c1d95;
-            font-size: 0.92rem;
-            font-weight: 700;
-            padding: 10px 12px;
-            transition: all 0.2s ease;
+            justify-content: center;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            background: transparent;
+            color: #6b7280;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 6px 2px;
+            white-space: nowrap;
+            transition: color 0.22s ease, border-color 0.22s ease;
         }
 
         .category-chip:hover {
+            color: #4c1d95;
             border-color: #8b5cf6;
-            box-shadow: 0 8px 22px rgba(109, 40, 217, 0.12);
         }
 
         .category-chip[data-active="true"] {
+            color: #4c1d95;
             border-color: var(--brand-purple);
-            background: var(--brand-purple);
-            color: #ffffff;
         }
 
         .page-btn {
@@ -122,80 +124,59 @@
 <body class="min-h-full text-slate-900">
     <header class="sticky top-0 z-40 border-b border-violet-100 bg-white/95 backdrop-blur">
         <div class="border-b border-violet-100 bg-violet-50/50">
-            <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2 text-xs font-semibold text-slate-600 sm:px-6 lg:px-8">
-                <span class="font-bold text-violet-700">{{ $company['name'] }}</span>
-                <span>CNPJ: {{ $company['cnpj'] }}</span>
+            <div class="mx-auto flex max-w-7xl items-center gap-x-4 gap-y-1 px-4 py-1.5 text-[11px] font-semibold text-slate-600 sm:flex-wrap sm:gap-x-5 sm:gap-y-2 sm:py-2 sm:text-xs sm:px-6 lg:px-8">
+                <span class="max-w-[165px] truncate font-bold text-violet-700 sm:max-w-none">{{ $company['name'] }}</span>
+                <span class="hidden sm:inline">CNPJ: {{ $company['cnpj'] }}</span>
                 <span>Telefone: {{ $company['phone'] }}</span>
-                <span class="truncate">Endereco: {{ $company['address'] }}</span>
+                <span class="hidden max-w-[280px] truncate md:inline lg:max-w-none">Endereco: {{ $company['address'] }}</span>
             </div>
         </div>
 
-        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-            <div class="grid gap-3 lg:grid-cols-[300px_minmax(0,1fr)_220px] lg:items-center">
-                <button type="button" class="inline-flex h-14 items-center justify-center gap-3 rounded-xl bg-violet-700 px-6 text-base font-extrabold uppercase tracking-[0.08em] text-white shadow-lg shadow-violet-300/50 transition hover:bg-violet-800">
-                    <span class="text-xl">&#9776;</span>
+        <div class="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 sm:py-4 lg:px-8">
+            <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-[300px_minmax(0,1fr)_220px] lg:items-center">
+                <button type="button" class="order-1 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-violet-700 px-3 text-sm font-extrabold uppercase tracking-[0.06em] text-white shadow-md shadow-violet-300/40 transition hover:bg-violet-800 sm:h-12 sm:px-5 sm:text-[15px] lg:h-14 lg:gap-3 lg:px-6 lg:text-base lg:tracking-[0.08em] lg:shadow-lg lg:shadow-violet-300/50">
+                    <span class="text-lg lg:text-xl">&#9776;</span>
                     Departamentos
                 </button>
-
-                <label class="relative block">
+                <a href="#todos-os-produtos" class="order-2 inline-flex h-11 items-center justify-center rounded-xl bg-yellow-300 px-3 text-sm font-extrabold uppercase tracking-[0.06em] text-violet-900 shadow-md shadow-yellow-300/40 transition hover:bg-yellow-200 sm:h-12 sm:px-5 sm:text-[15px] lg:order-3 lg:h-14 lg:text-base lg:tracking-[0.08em] lg:shadow-lg lg:shadow-yellow-300/50">
+                    Catalogo
+                    <span id="catalog-count" class="ml-2 rounded-md bg-violet-900/15 px-1.5 py-0.5 text-[11px] font-bold sm:px-2 sm:text-xs">{{ $products->count() }}</span>
+                </a>
+                <label class="relative order-3 col-span-2 block lg:order-2 lg:col-span-1">
                     <span class="sr-only">Pesquisar produtos</span>
                     <input
                         id="products-search"
                         type="text"
                         placeholder="Digite o que voce procura..."
-                        class="h-14 w-full rounded-xl border border-violet-200 bg-white px-5 pr-14 text-base text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-violet-400"
+                        class="h-11 w-full rounded-xl border border-violet-200 bg-white px-4 pr-11 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-violet-400 sm:h-12 sm:px-5 sm:pr-12 sm:text-base lg:h-14 lg:pr-14"
                     />
-                    <span class="pointer-events-none absolute inset-y-0 right-4 inline-flex items-center text-violet-500">&#128269;</span>
+                    <span class="pointer-events-none absolute inset-y-0 right-3 inline-flex items-center text-lg text-violet-500 sm:right-4">&#128269;</span>
                 </label>
-
-                <a href="#todos-os-produtos" class="inline-flex h-14 items-center justify-center rounded-xl bg-yellow-300 px-5 text-base font-extrabold uppercase tracking-[0.08em] text-violet-900 shadow-lg shadow-yellow-300/50 transition hover:bg-yellow-200">
-                    Catalogo
-                    <span id="catalog-count" class="ml-2 rounded-md bg-violet-900/15 px-2 py-0.5 text-xs font-bold">{{ $products->count() }}</span>
-                </a>
-            </div>
-
-            <div class="mt-4 flex flex-wrap gap-2">
-                <span class="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] text-violet-700">Presentes</span>
-                <span class="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] text-violet-700">Novidades</span>
-                <span class="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] text-violet-700">Home office</span>
-                <span class="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] text-violet-700">Acessorios</span>
-                <span class="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] text-violet-700">Mais vendidos</span>
             </div>
         </div>
     </header>
 
     <main class="vitrine-background pb-24">
-        <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
-            <div class="rounded-2xl border border-violet-200 bg-white p-5 shadow-[0_12px_24px_rgba(109,40,217,0.08)] sm:p-6">
-                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-                    <h2 class="text-xl font-extrabold uppercase tracking-[0.05em] text-violet-900 sm:text-2xl">Filtrar por categoria</h2>
-                    <span id="active-category-label" class="rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] text-violet-700">
-                        Categoria ativa: Todas as categorias
+        <section class="mx-auto max-w-7xl px-4 pt-5 sm:px-6 sm:pt-6 lg:px-8">
+            <div class="rounded-2xl border border-violet-200 bg-white p-3.5 shadow-[0_10px_20px_rgba(109,40,217,0.08)] sm:p-4">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <h2 class="text-base font-extrabold uppercase tracking-[0.08em] text-violet-900 sm:text-lg">Categorias</h2>
+                    <span id="active-category-label" class="text-[10px] font-bold uppercase tracking-[0.08em] text-violet-500 sm:text-[11px]">
+                        Todas as categorias
                     </span>
-                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
-                        <div class="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-center">
-                            <p id="hero-products-count" class="text-3xl font-extrabold text-violet-700">{{ $products->count() }}</p>
-                            <p class="text-[11px] font-bold uppercase tracking-[0.1em] text-violet-500">Produtos</p>
-                        </div>
-                        <div class="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-center">
-                            <p class="text-3xl font-extrabold text-yellow-600">{{ $promotionalProducts->count() }}</p>
-                            <p class="text-[11px] font-bold uppercase tracking-[0.1em] text-yellow-700">Em promocao</p>
-                        </div>
-                    </div>
                 </div>
 
-                <button
-                    type="button"
-                    data-category-chip="all"
-                    data-category-name="Todas as categorias"
-                    class="category-chip"
-                    data-active="true"
-                >
-                    <span>Todas as categorias</span>
-                    <span class="rounded-md bg-violet-100 px-2 py-0.5 text-xs">{{ $products->count() }}</span>
-                </button>
+                <div id="category-chips-container" class="flex items-center gap-4 overflow-x-auto border-b border-violet-200/90 pb-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <button
+                        type="button"
+                        data-category-chip="all"
+                        data-category-name="Todas as categorias"
+                        class="category-chip"
+                        data-active="true"
+                    >
+                        <span>Todas</span>
+                    </button>
 
-                <div id="category-chips-container" class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     @foreach ($categories as $category)
                         <button
                             type="button"
@@ -205,27 +186,20 @@
                             class="category-chip"
                             data-active="false"
                         >
-                            <span class="truncate pr-2">{{ $category->name }}</span>
-                            <span class="rounded-md bg-violet-100 px-2 py-0.5 text-xs">{{ $category->active_products_count }}</span>
+                            <span class="truncate">{{ $category->name }}</span>
                         </button>
                     @endforeach
-                </div>
-
-                <div id="category-pagination" class="mt-4 flex items-center justify-center gap-2">
-                    <button id="category-prev" type="button" class="page-btn">Anterior</button>
-                    <div id="category-pages" class="flex items-center gap-2"></div>
-                    <button id="category-next" type="button" class="page-btn">Proxima</button>
                 </div>
             </div>
         </section>
 
-        <section id="todos-os-produtos" class="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8">
-            <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <h2 class="text-2xl font-extrabold uppercase tracking-[0.05em] text-violet-900 sm:text-3xl">Todos os produtos</h2>
+        <section id="todos-os-produtos" class="mx-auto max-w-7xl px-4 pt-7 sm:px-6 sm:pt-8 lg:px-8">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold uppercase tracking-[0.05em] text-violet-900 sm:text-2xl">Todos os produtos</h2>
                 <span id="products-page-indicator" class="text-sm font-semibold text-violet-600">Pagina 1</span>
             </div>
 
-            <div id="products-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div id="products-grid" class="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @foreach ($products as $product)
                     @include('vitrine.partials.product-card', [
                         'product' => $product,
@@ -245,9 +219,9 @@
                 <button id="products-next" type="button" class="page-btn">Proxima</button>
             </div>
         </section>
-        <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
-            <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <h2 class="flex items-center gap-2 text-2xl font-extrabold uppercase tracking-[0.05em] text-violet-900 sm:text-3xl">
+        <section class="mx-auto max-w-7xl px-4 pt-5 sm:px-6 sm:pt-6 lg:px-8">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h2 class="flex items-center gap-2 text-xl font-extrabold uppercase tracking-[0.05em] text-violet-900 sm:text-2xl">
                     <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-yellow-300 text-sm text-violet-900">%</span>
                     Ofertas do dia
                 </h2>
@@ -259,7 +233,7 @@
                     Nenhuma promocao ativa no momento.
                 </div>
             @else
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     @foreach ($promotionalProducts as $product)
                         @include('vitrine.partials.product-card', ['product' => $product, 'promotionSection' => true])
                     @endforeach
@@ -334,11 +308,9 @@
             </div>
         </form>
     </section>
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const PRODUCTS_PER_PAGE = 6;
-            const CATEGORIES_PER_PAGE = 8;
 
             const productsGrid = document.getElementById('products-grid');
             const productCards = Array.from(productsGrid.querySelectorAll('[data-product-card="1"]'));
@@ -351,20 +323,14 @@
 
             const categoryAllButton = document.querySelector('[data-category-chip="all"]');
             const categoryButtons = Array.from(document.querySelectorAll('[data-category-chip="item"]'));
-            const categoryPagination = document.getElementById('category-pagination');
-            const categoryPrev = document.getElementById('category-prev');
-            const categoryNext = document.getElementById('category-next');
-            const categoryPages = document.getElementById('category-pages');
             const activeCategoryLabel = document.getElementById('active-category-label');
 
             const searchInput = document.getElementById('products-search');
             const catalogCount = document.getElementById('catalog-count');
-            const heroProductsCount = document.getElementById('hero-products-count');
 
             let selectedCategoryId = 'all';
             let selectedCategoryName = 'Todas as categorias';
             let productsPage = 1;
-            let categoriesPage = 1;
 
             function normalizeText(value) {
                 return (value || '').toString().trim().toLowerCase();
@@ -376,52 +342,7 @@
                     button.dataset.active = button.dataset.categoryId === selectedCategoryId ? 'true' : 'false';
                 });
 
-                activeCategoryLabel.textContent = 'Categoria ativa: ' + selectedCategoryName;
-            }
-
-            function renderCategoryPagination(totalPages) {
-                if (totalPages <= 1) {
-                    categoryPagination.classList.add('hidden');
-                    return;
-                }
-
-                categoryPagination.classList.remove('hidden');
-                categoryPrev.disabled = categoriesPage === 1;
-                categoryNext.disabled = categoriesPage === totalPages;
-
-                const start = Math.max(1, categoriesPage - 2);
-                const end = Math.min(totalPages, categoriesPage + 2);
-                categoryPages.innerHTML = '';
-
-                for (let page = start; page <= end; page += 1) {
-                    const button = document.createElement('button');
-                    button.type = 'button';
-                    button.className = 'page-btn' + (page === categoriesPage ? ' is-active' : '');
-                    button.textContent = String(page);
-                    button.addEventListener('click', function () {
-                        categoriesPage = page;
-                        renderCategories();
-                    });
-                    categoryPages.appendChild(button);
-                }
-            }
-
-            function renderCategories() {
-                const totalPages = Math.max(1, Math.ceil(categoryButtons.length / CATEGORIES_PER_PAGE));
-
-                if (categoriesPage > totalPages) {
-                    categoriesPage = totalPages;
-                }
-
-                const start = (categoriesPage - 1) * CATEGORIES_PER_PAGE;
-                const end = start + CATEGORIES_PER_PAGE;
-
-                categoryButtons.forEach(function (button, index) {
-                    const visible = index >= start && index < end;
-                    button.classList.toggle('hidden', !visible);
-                });
-
-                renderCategoryPagination(totalPages);
+                activeCategoryLabel.textContent = selectedCategoryName;
             }
 
             function getFilteredProducts() {
@@ -492,7 +413,6 @@
                     : 'Nenhum resultado';
 
                 catalogCount.textContent = String(filteredProducts.length);
-                heroProductsCount.textContent = String(filteredProducts.length);
                 renderProductsPagination(totalPages);
             }
 
@@ -536,23 +456,7 @@
                 }
             });
 
-            categoryPrev.addEventListener('click', function () {
-                if (categoriesPage > 1) {
-                    categoriesPage -= 1;
-                    renderCategories();
-                }
-            });
-
-            categoryNext.addEventListener('click', function () {
-                const totalPages = Math.max(1, Math.ceil(categoryButtons.length / CATEGORIES_PER_PAGE));
-                if (categoriesPage < totalPages) {
-                    categoriesPage += 1;
-                    renderCategories();
-                }
-            });
-
             setCategoryActiveStyles();
-            renderCategories();
             renderProducts();
 
             const panel = document.getElementById('chatbot-panel');
