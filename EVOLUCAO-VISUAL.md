@@ -2,7 +2,7 @@
 
 Documento de trabalho para organizar a evolução da interface, separado do backlog funcional de `IMPLEMENTACOES.md`.
 
-Data: 21/10/2026. Status: proposta para orientar protótipos e implementação. Nenhuma mudança de interface foi executada nesta etapa.
+Data: 21/10/2026. Status: primeira revisão do PDV implementada e inspecionada no navegador em desktop/celular, nos temas claro e escuro. As demais telas continuam no planejamento. Detalhes em `docs/PDV-INTERFACE.md`.
 
 ## 1. Fazer agora ou depois?
 
@@ -86,11 +86,12 @@ O painel deve ajudar a decidir o que fazer, com números que tenham significado 
 
 ### 6.2. Venda de balcão — concluir com rapidez e segurança
 
-- [ ] Dar destaque à busca/leitura do produto e ao carrinho.
-- [ ] Mostrar produto, quantidade, preço, desconto e subtotal de maneira fácil de conferir.
-- [ ] Manter total e ação principal visíveis conforme o tamanho da tela.
-- [ ] Facilitar alteração de quantidade e remoção de item.
-- [ ] Deixar a identificação opcional do cliente em posição compatível com sua importância.
+- [x] Dar destaque à busca por nome/código e ao carrinho. Leitura por câmera no balcão continua em evolução.
+- [x] Mostrar produto, quantidade, preço, desconto e subtotal de maneira fácil de conferir.
+- [x] Manter total e ação principal visíveis conforme o tamanho da tela.
+- [x] Facilitar quantidade antes de adicionar e remoção do item na lista.
+- [ ] Permitir edição da quantidade diretamente no item já adicionado.
+- [x] Deixar a identificação opcional do cliente em posição compatível com sua importância.
 - [ ] Mostrar estoque insuficiente e erros sem perder os itens já adicionados.
 - [ ] Diferenciar visualmente rascunho, confirmação da venda e recebimento, conforme as regras implementadas.
 - [ ] Prever uso por teclado/leitor no desktop e câmera/toque no celular.

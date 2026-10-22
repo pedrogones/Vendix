@@ -5,12 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Auth\Login;
 use App\Filament\Auth\Register;
 use App\Filament\Pages\ControlPanel;
-use App\Filament\Resources\Profiles\ProfileResource;
 use App\Http\Middleware\RedirectClientFromFilament;
-
-use Filament\Actions\Action;
-use Filament\Facades\Filament;
-use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -20,10 +15,8 @@ use Filament\PanelProvider;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
-use Filament\Support\Facades\FilamentAsset;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
-use Illuminate\Auth\Authenticatable;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -49,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
-                ControlPanel::class
+                ControlPanel::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
@@ -70,10 +63,10 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->authMiddleware([
                 Authenticate::class,
-                RedirectClientFromFilament::class
+                RedirectClientFromFilament::class,
             ])->assets([
                 Css::make('css-painel', asset_('css/filament/painel.css')),
-                Css::make('css-pdv', asset_('css/filament/pdv.css')),
+                Css::make('css-pdv', asset_('css/filament/pdv.css').'?v='.filemtime(public_path('css/filament/pdv.css'))),
                 Js::make(
                     'html5-qrcode-lib',
                     'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'
@@ -82,12 +75,12 @@ class AdminPanelProvider extends PanelProvider
                 Js::make(
                     'qr-scanner',
                     asset_('js/filament/qr-scanner.js')
-                )
+                ),
             ])
             ->plugins([FilamentEditProfilePlugin::make()
                 ->canAccess(fn () => auth()->user()?->can('edit-my-profile') ?? false)
                 ->shouldShowAvatarForm()
                 ->setIcon('heroicon-o-user')
-                ->shouldShowDeleteAccountForm(false),]);
+                ->shouldShowDeleteAccountForm(false), ]);
     }
 }

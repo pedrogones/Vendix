@@ -12,6 +12,8 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -25,7 +27,7 @@ class StartSale extends Page implements HasForms
 
     protected static string|null|\BackedEnum $activeNavigationIcon = Heroicon::OutlinedShoppingCart;
 
-    protected static ?string $title = 'Iniciar Venda';
+    protected static ?string $title = 'Ponto de venda';
 
     protected static ?string $navigationLabel = 'Iniciar Venda';
 
@@ -63,19 +65,13 @@ class StartSale extends Page implements HasForms
     public function saleForm(Schema $schema): Schema
     {
         return $schema
+            ->columns(['default' => 2])
             ->schema([
-                TextInput::make('cpf')
-                    ->label('CPF do cliente (opcional)')
-                    ->placeholder('Digite se quiser identificar')
-                    ->mask('999.999.999-99')
-                    ->helperText('Se informar, facilita historico de compra e trocas futuras.')
-                    ->dehydrateStateUsing(fn (?string $state) => $state ? preg_replace('/\D+/', '', $state) : null)
-                    ->live()
-                    ->afterStateUpdated(fn ($state) => $this->handleCpfUpdated($state)),
-
                 Select::make('product_id')
                     ->label('Produto')
-                    ->placeholder('Digite o codigo ou nome do produto')
+                    ->placeholder('Nome ou código de barras')
+                    ->columnSpanFull()
+                    ->live()
                     ->searchable()
                     ->getSearchResultsUsing(fn (string $search) => Product::query()
                         ->where('name', 'like', "%{$search}%")
@@ -103,7 +99,24 @@ class StartSale extends Page implements HasForms
                     ->minValue(0)
                     ->default(0)
                     ->live()
-                    ->helperText('Se nao tiver desconto, deixe 0.'),
+                    ->placeholder('0,00'),
+
+                View::make('filament.pages.components.pdv-add-item')->columnSpanFull(),
+
+                Section::make('Cliente da venda (opcional)')
+                    ->compact()
+                    ->collapsible()
+                    ->collapsed()
+                    ->columnSpanFull()
+                    ->schema([
+                        TextInput::make('cpf')
+                            ->label('CPF do cliente')
+                            ->placeholder('000.000.000-00')
+                            ->mask('999.999.999-99')
+                            ->dehydrateStateUsing(fn (?string $state) => $state ? preg_replace('/\D+/', '', $state) : null)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($state) => $this->handleCpfUpdated($state)),
+                    ]),
             ])
             ->statePath('saleData');
     }

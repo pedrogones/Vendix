@@ -1,258 +1,119 @@
 @php
-    $itemsCount = $sale?->items->sum('quantity') ?? 0;
-    $discountTotal = $sale?->items->sum('discount') ?? 0;
-    $subtotal = $sale?->items->sum(fn ($item) => $item->unit_price * $item->quantity) ?? 0;
-    $clientCpf = $sale?->client?->cpf ?? 'Nao informado';
-    $operatorName = auth()->user()->name ?? 'Usuario';
+    $saleItems = $sale?->items ?? collect();
+    $itemsCount = $saleItems->sum('quantity');
+    $discountTotal = $saleItems->sum('discount');
+    $subtotal = $saleItems->sum(fn ($item) => $item->unit_price * $item->quantity);
 @endphp
 
 <div class="pdv">
-    <div class="pdv-wrap mt-6">
-
-        {{-- Topo --}}
-        <div class="pdv-top">
-            <div class="pdv-title min-w-0">
-                <span class="pdv-eyebrow">Venda em andamento</span>
-                <h1>Caixa aberto</h1>
-                <p>Busque por nome, codigo de barras ou QR.</p>
-                <div class="pdv-meta">
-                    <span class="pdv-pill">Venda #{{ $sale?->id ?? '-' }}</span>
-{{--                    <span class="pdv-pill">Cliente: {{ $clientCpf }}</span>--}}
-                    <span class="pdv-pill">Operador: {{ $operatorName }}</span>
-                </div>
-            </div>
-
-            <div class="pdv-kpis min-w-0">
-                <div class="pdv-kpi">
-                    <div class="lbl">Itens</div>
-                    <div class="val">{{ $itemsCount }}</div>
-                </div>
-                <div class="pdv-kpi">
-                    <div class="lbl">Desconto</div>
-                    <div class="val">R$ {{ number_format($discountTotal, 2, ',', '.') }}</div>
-                </div>
-                <div class="pdv-kpi">
-                    <div class="lbl">Total</div>
-                    <div class="val">R$ {{ number_format($sale?->total ?? 0, 2, ',', '.') }}</div>
-                </div>
-            </div>
+    <div class="pdv-header">
+        <div class="pdv-sale-id">
+            <span class="pdv-status-dot" aria-hidden="true"></span>
+            <strong>Venda #{{ str_pad((string) ($sale?->id ?? 0), 4, '0', STR_PAD_LEFT) }}</strong>
+            <span class="pdv-draft">Em edição</span>
         </div>
+        <span class="pdv-operator" title="{{ auth()->user()?->name }}">{{ auth()->user()?->name }}</span>
+    </div>
 
-        {{-- Corpo --}}
-        <div class="pdv-grid min-w-0">
+    <div class="pdv-workspace">
+        <div class="pdv-main">
+            <section class="pdv-entry" aria-labelledby="pdv-entry-title">
+                <header class="pdv-section-heading">
+                    <h2 id="pdv-entry-title">Adicionar produto</h2>
+                </header>
 
-            {{-- Esquerda --}}
-            <div class="space-y-4 min-w-0">
+                {{ $this->saleForm }}
 
-                {{-- Adicionar item --}}
-                <div class="min-w-0">
-                    <div class="">
-                        <div class="">Adicionar item</div>
-                        <div class="">Busque e confirme o produto</div>
-                    </div>
+            </section>
 
-                    {{ $this->saleForm }}
+            <section class="pdv-cart" aria-labelledby="pdv-cart-title">
+                <header class="pdv-section-heading pdv-cart-heading">
+                    <h2 id="pdv-cart-title">Itens da venda</h2>
+                    <span>{{ $itemsCount }} {{ $itemsCount === 1 ? 'unidade' : 'unidades' }}</span>
+                </header>
 
-                    <div class="pdv-preview min-w-0">
-                        @if($this->selectedProduct)
-                            <div class="min-w-0">
-                                <div class="name truncate">
-                                    {{ $this->selectedProduct->name }}
-                                </div>
-
-                                <div class="meta">
-                                    Unitario: R$ {{ number_format($this->unitPrice, 2, ',', '.') }}
-                                    | Estoque: {{ $this->selectedProduct->stock }}
-                                </div>
-                            </div>
-
-                            <div class="total">
-                                <div class="lbl">Subtotal</div>
-                                <div class="val">
-                                    R$ {{ number_format($this->itemSubtotal, 2, ',', '.') }}
-                                </div>
-                            </div>
-                        @else
-                            <div class="text-sm">
-                                Selecione um produto para ver a previa.
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="mt-3">
-                        <x-filament::button
-                            wire:click="addItem"
-                            size="lg"
-                            color="success"
-                            class="w-full"
-                            wire:loading.attr="disabled"
-                        >
-                            <span wire:loading.remove>Adicionar item</span>
-                            <span wire:loading>Adicionando...</span>
-                        </x-filament::button>
-                    </div>
-                </div>
-
-                {{-- Tabela de itens --}}
-                <div class="pdv-panel min-w-0" style="margin-top:.57rem">
-                    <div class="pdv-panel-head">
-                        <div class="pdv-panel-title">Itens da venda</div>
-                        <div class="pdv-hint">{{ $itemsCount }} itens no carrinho</div>
-                    </div>
-
-                    @if ($sale && $sale->items->count())
-
-                        {{-- MOBILE: cards --}}
-                        <div class="space-y-3 lg:hidden">
-                            @foreach ($sale->items as $item)
-                                <div class="pdv-item-card" wire:key="sale-item-card-{{ $item->id }}">
-                                    <div class="pdv-item-top">
-                                        <div class="pdv-item-name">
-                                            {{ $item->product->name }}
-                                        </div>
-
+                @if ($saleItems->isNotEmpty())
+                    <table class="pdv-items">
+                        <caption class="pdv-sr-only">Produtos adicionados à venda</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Produto</th>
+                                <th scope="col" class="pdv-quantity">Qtd.</th>
+                                <th scope="col" class="pdv-unit">Unitário</th>
+                                <th scope="col" class="pdv-amount">Total</th>
+                                <th scope="col"><span class="pdv-sr-only">Remover</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($saleItems as $item)
+                                <tr wire:key="pdv-item-{{ $item->id }}">
+                                    <td class="pdv-product-cell">
+                                        <span class="pdv-product-name">{{ $item->product?->name ?? 'Produto indisponível' }}</span>
+                                        @if ($item->product?->barcode)
+                                            <span class="pdv-product-code">{{ $item->product->barcode }}</span>
+                                        @endif
+                                        @if ($item->discount > 0)
+                                            <span class="pdv-item-discount">Desconto de R$ {{ number_format($item->discount, 2, ',', '.') }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="pdv-quantity"><span class="pdv-mobile-label">Qtd. </span>{{ $item->quantity }}</td>
+                                    <td class="pdv-unit">R$ {{ number_format($item->unit_price, 2, ',', '.') }}</td>
+                                    <td class="pdv-amount">R$ {{ number_format($item->total_price, 2, ',', '.') }}</td>
+                                    <td class="pdv-remove">
                                         <x-filament::icon-button
-                                            icon="heroicon-m-trash"
-                                            color="danger"
+                                            icon="heroicon-m-x-mark"
+                                            color="gray"
                                             size="sm"
+                                            :label="'Remover '.$item->product?->name"
                                             wire:click="removeItem({{ $item->id }})"
                                             wire:loading.attr="disabled"
+                                            wire:target="addItem,confirmSale,removeItem"
                                         />
-                                    </div>
-
-                                    <div class="pdv-item-meta">
-                                        <span class="pdv-pill">{{ $item->quantity }} un</span>
-                                        <span class="pdv-item-muted">
-                                            Unitario: R$ {{ number_format($item->unit_price, 2, ',', '.') }}
-                                        </span>
-                                        <span class="pdv-item-muted">
-                                            Desconto: {{ $item->discount ? 'R$ ' . number_format($item->discount, 2, ',', '.') : '-' }}
-                                        </span>
-                                    </div>
-
-                                    <div class="pdv-item-bottom">
-                                        <div class="pdv-item-muted">
-                                            {{ $item->product->barcode ?? 'Sem codigo' }}
-                                        </div>
-
-                                        <div class="pdv-item-total">
-                                            R$ {{ number_format($item->total_price, 2, ',', '.') }}
-                                        </div>
-                                    </div>
-                                </div>
+                                    </td>
+                                </tr>
                             @endforeach
-                        </div>
-
-                        {{-- DESKTOP: tabela --}}
-                        <div class="hidden lg:block">
-                            <div class="pdv-table-wrap">
-                                <table class="pdv-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Produto</th>
-                                            <th class="text-center">Qtd</th>
-                                            <th class="text-right">Unitario</th>
-                                            <th class="text-right">Desconto</th>
-                                            <th class="text-right">Total</th>
-                                            <th class="text-center">Acoes</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        @foreach ($sale->items as $item)
-                                            <tr class="pdv-row" wire:key="sale-item-row-{{ $item->id }}">
-                                                <td>
-                                                    <div class="pdv-prod">{{ $item->product->name }}</div>
-                                                    <div class="pdv-sub">{{ $item->product->barcode ?? 'Sem codigo' }}</div>
-                                                </td>
-
-                                                <td class="text-center">
-                                                    <span class="pdv-pill">{{ $item->quantity }}</span>
-                                                </td>
-
-                                                <td class="text-right pdv-money">
-                                                    R$ {{ number_format($item->unit_price, 2, ',', '.') }}
-                                                </td>
-
-                                                <td class="text-right pdv-money">
-                                                    {{ $item->discount ? 'R$ ' . number_format($item->discount, 2, ',', '.') : '-' }}
-                                                </td>
-
-                                                <td class="text-right pdv-money">
-                                                    R$ {{ number_format($item->total_price, 2, ',', '.') }}
-                                                </td>
-
-                                                <td class="text-center">
-                                                    <x-filament::icon-button
-                                                        icon="heroicon-m-trash"
-                                                        color="danger"
-                                                        wire:click="removeItem({{ $item->id }})"
-                                                        wire:loading.attr="disabled"
-                                                    />
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                    @else
-                        <div class="pdv-muted-block">
-                            Nenhum item adicionado ainda. Use a busca acima para incluir produtos.
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Direita --}}
-            <div class="pdv-sticky space-y-4 min-w-0">
-                <div class="pdv-panel min-w-0">
-                    <div class="pdv-panel-head">
-                        <div class="pdv-panel-title">Resumo do pagamento</div>
-                        <div class="pdv-hint">Finalize com seguranca</div>
+                        </tbody>
+                    </table>
+                @else
+                    <div class="pdv-empty">
+                        <x-filament::icon icon="heroicon-o-shopping-cart" class="pdv-empty-icon" />
+                        <p>Nenhum produto adicionado</p>
+                        <span>Busque um produto acima para começar a venda.</span>
                     </div>
-
-                    <div class="pdv-summary">
-                        <div class="pdv-total">
-                            <div class="lbl">Total da venda</div>
-                            <div class="val">
-                                R$ {{ number_format($sale?->total ?? 0, 2, ',', '.') }}
-                            </div>
-                        </div>
-
-                        <div class="pdv-muted-block">
-                            Subtotal: <strong style="color: var(--text)">R$ {{ number_format($subtotal, 2, ',', '.') }}</strong>
-                        </div>
-
-                        <div class="pdv-muted-block">
-                            Descontos: <strong style="color: var(--text)">R$ {{ number_format($discountTotal, 2, ',', '.') }}</strong>
-                        </div>
-
-                        <div class="pdv-muted-block">
-                            Itens: <strong style="color: var(--text)">{{ $itemsCount }}</strong>
-                        </div>
-
-                        <div class="pdv-buttons space-y-3">
-                            <x-filament::button
-                                wire:click="confirmSale"
-                                size="lg"
-                                color="success"
-                                class="w-full"
-                                wire:loading.attr="disabled"
-                            >
-                                Confirmar venda
-                            </x-filament::button>
-                        </div>
-
-                        <div class="pdv-note pdv-muted-block">
-                            Dica: depois voce pode informar forma de pagamento e troco.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+                @endif
+            </section>
         </div>
 
+        <aside class="pdv-checkout" aria-label="Resumo e confirmação da venda">
+            <div class="pdv-checkout-details">
+                <h2>Resumo da venda</h2>
+                <dl class="pdv-breakdown">
+                    <div><dt>Subtotal</dt><dd>R$ {{ number_format($subtotal, 2, ',', '.') }}</dd></div>
+                    <div><dt>Descontos</dt><dd>{{ $discountTotal > 0 ? '− ' : '' }}R$ {{ number_format($discountTotal, 2, ',', '.') }}</dd></div>
+                    <div><dt>Quantidade</dt><dd>{{ $itemsCount }} {{ $itemsCount === 1 ? 'unidade' : 'unidades' }}</dd></div>
+                </dl>
+                @if ($sale?->client?->cpf)
+                    <p class="pdv-client">Cliente identificado por CPF</p>
+                @endif
+            </div>
+            <div class="pdv-checkout-action">
+                <div class="pdv-grand-total" aria-live="polite" aria-atomic="true">
+                    <span>Total<span class="pdv-mobile-count"> · {{ $itemsCount }} un.</span></span>
+                    <strong>R$ {{ number_format($sale?->total ?? 0, 2, ',', '.') }}</strong>
+                </div>
+                <x-filament::button
+                    wire:click="confirmSale"
+                    wire:loading.attr="disabled"
+                    wire:target="addItem,confirmSale,removeItem"
+                    :disabled="$saleItems->isEmpty()"
+                    icon="heroicon-m-check"
+                    class="pdv-confirm-button"
+                >
+                    <span wire:loading.remove wire:target="confirmSale">Confirmar venda</span>
+                    <span wire:loading wire:target="confirmSale">Confirmando…</span>
+                </x-filament::button>
+                <p class="pdv-confirm-note">A confirmação registra a venda e baixa o estoque.</p>
+            </div>
+        </aside>
     </div>
 </div>
