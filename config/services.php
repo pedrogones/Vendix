@@ -35,6 +35,12 @@ return [
         ],
     ],
 
+    'bluesoft' => [
+        'token' => env('BLUESOFT_API_TOKEN'),
+        'user_agent' => env('BLUESOFT_USER_AGENT'),
+        'url' => env('BLUESOFT_API_URL', 'https://cosmos.bluesoft.com.br/api'),
+    ],
+
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
         'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
@@ -46,4 +52,3 @@ return [
     ],
 
 ];
-

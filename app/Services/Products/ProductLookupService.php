@@ -2,8 +2,8 @@
 
 namespace App\Services\Products;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
 
 class ProductLookupService
 {
@@ -14,12 +14,15 @@ class ProductLookupService
 
     protected function lookupBluesoft(string $barcode): ?array
     {
+        $baseUrl = rtrim((string) config('services.bluesoft.url'), '/');
+
         $response = Http::timeout(10)
             ->withHeaders([
-                'X-Cosmos-Token' => env('BLUESOFT_API_TOKEN'),
-                'Accept'        => 'application/json',
+                'X-Cosmos-Token' => (string) config('services.bluesoft.token'),
+                'User-Agent' => (string) config('services.bluesoft.user_agent'),
+                'Accept' => 'application/json',
             ])
-            ->get("https://api.cosmos.bluesoft.com.br/gtins/{$barcode}");
+            ->get($baseUrl.'/gtins/'.rawurlencode($barcode).'.json');
 
         if ($response->status() === 404) {
             return null;
@@ -28,9 +31,10 @@ class ProductLookupService
         if (! $response->ok()) {
             logger()->error('Bluesoft lookup failed', [
                 'barcode' => $barcode,
-                'status'  => $response->status(),
-                'body'    => $response->json(),
+                'status' => $response->status(),
+                'body' => $response->json(),
             ]);
+
             return null;
         }
 
@@ -38,14 +42,13 @@ class ProductLookupService
         logger($barcode, $data);
 
         return [
-            'name'          => Arr::get($data, 'description'),
-            'description'   => Arr::get($data, 'ncm.full_description'),
-            'brand'         => Arr::get($data, 'brand.name'),
-            'category'      => Arr::get($data, 'category.description'),
-            'weight'        => Arr::get($data, 'package.quantity'),
-            'thumbnail'     => Arr::get($data, 'thumbnail'),
+            'name' => Arr::get($data, 'description'),
+            'description' => Arr::get($data, 'ncm.full_description'),
+            'brand' => Arr::get($data, 'brand.name'),
+            'category' => Arr::get($data, 'category.description'),
+            'weight' => Arr::get($data, 'package.quantity'),
+            'thumbnail' => Arr::get($data, 'thumbnail'),
         ];
 
     }
-
 }
