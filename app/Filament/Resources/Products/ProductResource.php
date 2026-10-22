@@ -8,31 +8,27 @@ use App\Models\Product;
 use App\Services\Archives\ArchiveUploadService;
 use App\Services\Products\ProductLookupService;
 use BackedEnum;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
-use Filament\Support\View\Components\BadgeComponent;
-use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Columns\ImageColumn;
-use Illuminate\Support\Str;
-use Filament\Forms\Components\{
-    TextInput,
-    Toggle,
-    Select,
-    Textarea,
-    FileUpload
-};
-use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class ProductResource extends BaseAclResource
 {
@@ -40,15 +36,18 @@ class ProductResource extends BaseAclResource
         'barcodeScanned' => 'handleBarcode',
     ];
 
-
     protected static ?string $model = Product::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
+
     protected static string|null|\UnitEnum $navigationGroup = 'Produtos';
 
     protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?string $modelLabel = 'Produto';
+
     protected static ?string $pluralModelLabel = 'Produtos';
+
     protected static string $permissionEntity = 'products';
 
     public static function form(Schema $schema): Schema
@@ -64,8 +63,7 @@ class ProductResource extends BaseAclResource
                             ->disk('public')
                             ->visibility('public')
                             ->storeFiles(false)
-                            ->nullable()
-
+                            ->nullable(),
 
                     ]),
 
@@ -112,6 +110,7 @@ class ProductResource extends BaseAclResource
                         TextInput::make('price')
                             ->label('Preço')
                             ->numeric()
+                            ->minValue(0)
                             ->prefix('R$')
                             ->required(),
 
@@ -122,6 +121,8 @@ class ProductResource extends BaseAclResource
                         TextInput::make('promotional_price')
                             ->label('Preço promocional')
                             ->numeric()
+                            ->gt(0)
+                            ->lt('price')
                             ->prefix('R$')
                             ->visible(fn ($get) => $get('is_on_sale'))
                             ->required(fn ($get) => $get('is_on_sale')),
@@ -132,12 +133,21 @@ class ProductResource extends BaseAclResource
                     ->components([
                         TextInput::make('stock')
                             ->label('Quantidade em estoque')
-                            ->numeric()
+                            ->integer()
+                            ->minValue(0)
+                            ->disabled(fn () => ! auth()->user()?->can('create-stock-movements'))
                             ->default(0),
+
+                        TextInput::make('stock_reason')
+                            ->label('Motivo da alteração do saldo')
+                            ->maxLength(255)
+                            ->visible(fn ($record) => $record !== null && auth()->user()?->can('create-stock-movements'))
+                            ->helperText('Obrigatório quando o saldo for alterado. Será registrado no histórico.'),
 
                         TextInput::make('min_stock')
                             ->label('Estoque mínimo')
-                            ->numeric()
+                            ->integer()
+                            ->minValue(0)
                             ->default(0),
                     ]),
 
@@ -171,6 +181,7 @@ class ProductResource extends BaseAclResource
 
                                 if (is_string($state) && $state !== '') {
                                     $decoded = json_decode($state, true);
+
                                     return $decoded ?? $state;
                                 }
 
@@ -242,11 +253,9 @@ class ProductResource extends BaseAclResource
                         TextEntry::make('stock')
                             ->label('Status do estoque')
                             ->badge()
-                            ->formatStateUsing(fn ($state, $record) =>
-                            $record->isLowStock() ? 'Baixo' : 'OK'
+                            ->formatStateUsing(fn ($state, $record) => $record->isLowStock() ? 'Baixo' : 'OK'
                             )
-                            ->color(fn ($state, $record) =>
-                            $record->isLowStock() ? 'danger' : 'success'
+                            ->color(fn ($state, $record) => $record->isLowStock() ? 'danger' : 'success'
                             ),
                     ]),
 
@@ -298,8 +307,7 @@ class ProductResource extends BaseAclResource
 
                 BadgeColumn::make('stock')
                     ->label('Estoque')
-                    ->color(fn ($state, $record) =>
-                    $record->isLowStock() ? 'danger' : 'success'
+                    ->color(fn ($state, $record) => $record->isLowStock() ? 'danger' : 'success'
                     ),
             ])
             ->filters([
@@ -330,8 +338,8 @@ class ProductResource extends BaseAclResource
                             $data['image_id'] = $archive->id;
                         }
                         unset($data['image_file']);
-                        $record->update($data);
-                        return $record;
+
+                        return app(\App\Services\Products\ProductWriteService::class)->save($data, $record);
                     }),
                 DeleteAction::make(),
             ])
@@ -376,28 +384,26 @@ class ProductResource extends BaseAclResource
 
         return $data;
     }
-//    public function handleBarcode(string $code): void
-//    {
-//        $this->barcode = $code;
-//
-//        $data = app(ProductLookupService::class)->lookup($code);
-//
-//        if (! $data) {
-//            Notification::make()
-//                ->danger()
-//                ->title('Produto não encontrado')
-//                ->send();
-//            return;
-//        }
-//
-//        $this->form->fill([
-//            'name'        => $data['name'] ?? null,
-//            'description' => $data['description'] ?? null,
-//            'barcode'     => $code,
-//            'external_data' => $data,
-//        ]);
-//    }
-
+    //    public function handleBarcode(string $code): void
+    //    {
+    //        $this->barcode = $code;
+    //
+    //        $data = app(ProductLookupService::class)->lookup($code);
+    //
+    //        if (! $data) {
+    //            Notification::make()
+    //                ->danger()
+    //                ->title('Produto não encontrado')
+    //                ->send();
+    //            return;
+    //        }
+    //
+    //        $this->form->fill([
+    //            'name'        => $data['name'] ?? null,
+    //            'description' => $data['description'] ?? null,
+    //            'barcode'     => $code,
+    //            'external_data' => $data,
+    //        ]);
+    //    }
 
 }
-

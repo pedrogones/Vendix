@@ -6,13 +6,12 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\Stocks\ConfirmSaleService;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
-use Filament\Pages\Page;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -21,11 +20,17 @@ class StartSale extends Page implements HasForms
     use InteractsWithForms;
 
     protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedShoppingCart;
+
     protected static string|null|\UnitEnum $navigationGroup = 'Vendas';
+
     protected static string|null|\BackedEnum $activeNavigationIcon = Heroicon::OutlinedShoppingCart;
+
     protected static ?string $title = 'Iniciar Venda';
+
     protected static ?string $navigationLabel = 'Iniciar Venda';
+
     protected string $view = 'filament.pages.start-sale';
+
     protected static ?string $slug = 'start-sale/{sale?}';
 
     public static function canAccess(): bool
@@ -72,16 +77,14 @@ class StartSale extends Page implements HasForms
                     ->label('Produto')
                     ->placeholder('Digite o codigo ou nome do produto')
                     ->searchable()
-                    ->getSearchResultsUsing(fn (string $search) =>
-                        Product::query()
-                            ->where('name', 'like', "%{$search}%")
-                            ->orWhere('barcode', 'like', "%{$search}%")
-                            ->orWhere('description', 'like', "%{$search}%")
-                            ->limit(20)
-                            ->pluck('name', 'id')
+                    ->getSearchResultsUsing(fn (string $search) => Product::query()
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('barcode', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->limit(20)
+                        ->pluck('name', 'id')
                     )
-                    ->getOptionLabelUsing(fn ($value): ?string =>
-                        Product::find($value)?->name
+                    ->getOptionLabelUsing(fn ($value): ?string => Product::find($value)?->name
                     )
                     ->required(),
 
@@ -111,6 +114,7 @@ class StartSale extends Page implements HasForms
             return;
         }
 
+        \Illuminate\Support\Facades\Gate::authorize('create-sales');
         $this->sale = Sale::create([
             'status' => 'draft',
             'user_id' => auth()->id(),
@@ -127,8 +131,18 @@ class StartSale extends Page implements HasForms
             return;
         }
 
-        $client = Client::firstOrCreate(['cpf' => $cpf]);
-        $this->sale->update(['client_id' => $client->id]);
+        if (strlen($cpf) !== 11) {
+            return;
+        }
+        \Illuminate\Support\Facades\DB::transaction(function () use ($cpf): void {
+            $sale = Sale::query()->lockForUpdate()->findOrFail($this->sale->id);
+            \Illuminate\Support\Facades\Gate::authorize($sale->user_id === auth()->id() ? 'create-sales' : 'edit-sales');
+            if ($sale->status !== 'draft') {
+                return;
+            }
+            $client = Client::firstOrCreate(['cpf' => $cpf]);
+            $sale->update(['client_id' => $client->id]);
+        });
     }
 
     public function addItem(): void
@@ -137,43 +151,22 @@ class StartSale extends Page implements HasForms
 
         $this->validate([
             'saleData.product_id' => 'required|exists:products,id',
-            'saleData.quantity'   => 'required|integer|min:1',
-            'saleData.discount'   => 'nullable|numeric|min:0',
+            'saleData.quantity' => 'required|integer|min:1',
+            'saleData.discount' => 'nullable|numeric|min:0',
         ]);
 
-        $product = Product::find($this->saleData['product_id']);
-        $quantity = (int) $this->saleData['quantity'];
-        $discount = (float) ($this->saleData['discount'] ?? 0);
+        try {
+            app(\App\Services\Sales\SaleItemService::class)->add(
+                $this->sale,
+                (int) $this->saleData['product_id'],
+                (int) $this->saleData['quantity'],
+                (float) ($this->saleData['discount'] ?? 0),
+            );
+        } catch (\DomainException $exception) {
+            Notification::make()->title($exception->getMessage())->danger()->send();
 
-        if (! $product || ! $product->is_active) {
-            Notification::make()
-                ->title('Produto indisponivel')
-                ->danger()
-                ->send();
             return;
         }
-
-        if ($product->stock < $quantity) {
-            Notification::make()
-                ->title('Estoque insuficiente')
-                ->body("Disponivel: {$product->stock}")
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $unitPrice = (float) $product->final_price;
-        $itemTotal = max(0, ($unitPrice * $quantity) - $discount);
-
-        $this->sale->items()->create([
-            'product_id' => $product->id,
-            'quantity' => $quantity,
-            'discount' => $discount,
-            'unit_price' => $unitPrice,
-            'total_price' => $itemTotal,
-        ]);
-
-        $this->recalculateSaleTotal();
 
         $this->resetSaleForm();
         $this->sale->refresh()->load('items.product');
@@ -185,9 +178,11 @@ class StartSale extends Page implements HasForms
             return;
         }
 
-        $this->sale->items()->whereKey($itemId)->delete();
-
-        $this->recalculateSaleTotal();
+        try {
+            app(\App\Services\Sales\SaleItemService::class)->remove($this->sale, $itemId);
+        } catch (\DomainException $exception) {
+            Notification::make()->title($exception->getMessage())->danger()->send();
+        }
 
         $this->sale->refresh()->load('items.product');
     }
@@ -213,6 +208,7 @@ class StartSale extends Page implements HasForms
     public function getSelectedProductProperty(): ?Product
     {
         $id = $this->saleData['product_id'] ?? null;
+
         return $id ? Product::find($id) : null;
     }
 
@@ -225,6 +221,7 @@ class StartSale extends Page implements HasForms
     {
         $qty = (int) ($this->saleData['quantity'] ?? 1);
         $discount = (float) ($this->saleData['discount'] ?? 0);
+
         return max(0, ($this->unitPrice * $qty) - $discount);
     }
 
@@ -235,6 +232,7 @@ class StartSale extends Page implements HasForms
         }
 
         try {
+            \Illuminate\Support\Facades\Gate::authorize($this->sale->user_id === auth()->id() ? 'create-sales' : 'edit-sales');
             app(ConfirmSaleService::class)->confirm($this->sale);
 
             Notification::make()
@@ -254,6 +252,3 @@ class StartSale extends Page implements HasForms
         }
     }
 }
-
-
-

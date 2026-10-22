@@ -16,13 +16,17 @@ class ChatbotService
         private readonly ProductRuleService $productRules,
         private readonly CartService $cartService,
         private readonly ChatbotCheckoutService $checkoutService,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{intent:string,message:string,meta:array<string,mixed>}
      */
     public function handle(string $sessionId, string $message): array
+    {
+        return $this->cartService->synchronized($sessionId, fn (): array => $this->handleUnlocked($sessionId, $message));
+    }
+
+    private function handleUnlocked(string $sessionId, string $message): array
     {
         $message = trim($message);
 
@@ -80,7 +84,7 @@ class ChatbotService
     }
 
     /**
-     * @param array<string,mixed> $entities
+     * @param  array<string,mixed>  $entities
      * @return array{intent:string,message:string,meta:array<string,mixed>}
      */
     private function handleProductLookup(string $sessionId, string $message, array $entities): array
@@ -132,14 +136,14 @@ class ChatbotService
 
         return $this->buildResponse(
             'promotions_lookup',
-            'Promocoes do dia: ' . $items . '.',
+            'Promocoes do dia: '.$items.'.',
             $sessionId,
             ['promotions_count' => $products->count()]
         );
     }
 
     /**
-     * @param array<string,mixed> $entities
+     * @param  array<string,mixed>  $entities
      * @return array{intent:string,message:string,meta:array<string,mixed>}
      */
     private function handleOrderStart(string $sessionId, string $message, array $entities): array
@@ -192,7 +196,7 @@ class ChatbotService
     }
 
     /**
-     * @param array<string,mixed> $state
+     * @param  array<string,mixed>  $state
      * @return array{intent:string,message:string,meta:array<string,mixed>}
      */
     private function handleAwaitingQuantity(string $sessionId, string $message, array $state): array
@@ -245,7 +249,7 @@ class ChatbotService
         ]);
 
         $economyText = $pricing['is_promotion']
-            ? ' Economia por unidade: ' . $this->productRules->formatCurrency($pricing['economy']) . '.'
+            ? ' Economia por unidade: '.$this->productRules->formatCurrency($pricing['economy']).'.'
             : '';
 
         $messageText = sprintf(
@@ -265,7 +269,7 @@ class ChatbotService
     }
 
     /**
-     * @param array<string,mixed> $entities
+     * @param  array<string,mixed>  $entities
      * @return array{intent:string,message:string,meta:array<string,mixed>}
      */
     private function handleOrderRemoveItem(string $sessionId, string $message, array $entities): array
@@ -336,13 +340,13 @@ class ChatbotService
 
         return $this->buildResponse(
             'order_confirm',
-            $this->buildCartSummaryText($cart) . ' Digite SIM para confirmar ou NAO para cancelar.',
+            $this->buildCartSummaryText($cart).' Digite SIM para confirmar ou NAO para cancelar.',
             $sessionId
         );
     }
 
     /**
-     * @param array<string,mixed> $state
+     * @param  array<string,mixed>  $state
      * @return array{intent:string,message:string,meta:array<string,mixed>}
      */
     private function handleAwaitingConfirmation(string $sessionId, string $message, array $state): array
@@ -362,6 +366,10 @@ class ChatbotService
                     $sessionId,
                     ['sale_id' => $order['sale_id'], 'order_number' => $order['order_number']]
                 );
+            } catch (\App\Exceptions\CartPriceChangedException $exception) {
+                $this->stateService->update($sessionId, ['step' => 'awaiting_confirmation']);
+
+                return $this->buildResponse('order_price_changed', $exception->getMessage().' '.$this->buildCartSummaryText($this->cartService->get($sessionId)).' Digite SIM para confirmar ou NAO para cancelar.', $sessionId);
             } catch (\DomainException $exception) {
                 $this->stateService->update($sessionId, ['step' => 'idle']);
 
@@ -424,7 +432,7 @@ class ChatbotService
     }
 
     /**
-     * @param array{items:array<int,array<string,mixed>>,subtotal:float,total_items:int} $cart
+     * @param  array{items:array<int,array<string,mixed>>,subtotal:float,total_items:int}  $cart
      */
     private function buildCartSummaryText(array $cart): string
     {
@@ -475,7 +483,7 @@ class ChatbotService
     }
 
     /**
-     * @param array<string,mixed> $extraMeta
+     * @param  array<string,mixed>  $extraMeta
      * @return array{intent:string,message:string,meta:array<string,mixed>}
      */
     private function buildResponse(string $intent, string $message, string $sessionId, array $extraMeta = []): array
@@ -494,6 +502,3 @@ class ChatbotService
         ];
     }
 }
-
-
-

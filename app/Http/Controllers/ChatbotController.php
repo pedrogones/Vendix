@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 
 class ChatbotController extends Controller
 {
-    public function __construct(private readonly ChatbotService $chatbotService)
-    {
-    }
+    public function __construct(private readonly ChatbotService $chatbotService) {}
 
     public function message(Request $request): JsonResponse
     {
@@ -19,7 +17,11 @@ class ChatbotController extends Controller
         ]);
 
         $sessionId = $request->session()->getId();
-        $response = $this->chatbotService->handle($sessionId, $data['message']);
+        try {
+            $response = $this->chatbotService->handle($sessionId, $data['message']);
+        } catch (\Illuminate\Contracts\Cache\LockTimeoutException) {
+            return response()->json(['ok' => false, 'reply' => 'Uma operação ainda está em andamento. Aguarde e tente novamente.'], 409);
+        }
 
         return response()->json([
             'ok' => true,

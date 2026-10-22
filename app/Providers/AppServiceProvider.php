@@ -13,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Services\Cart\CartService::class);
     }
 
     /**
@@ -22,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Carbon::setLocale('pt_BR');
-//        if (app()->environment('local')) {
-//            URL::forceScheme('https');
-//        }
+        //        if (app()->environment('local')) {
+        //            URL::forceScheme('https');
+        //        }
     }
 }

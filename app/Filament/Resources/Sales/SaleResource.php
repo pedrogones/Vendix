@@ -6,12 +6,11 @@ use App\Filament\Resources\BaseAclResource;
 use App\Filament\Resources\Sales\Pages\ManageSales;
 use App\Models\Sale;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
@@ -32,11 +31,15 @@ class SaleResource extends BaseAclResource
     protected static ?string $model = Sale::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
+
     protected static string|null|\UnitEnum $navigationGroup = 'Vendas';
 
     protected static ?string $recordTitleAttribute = 'id';
+
     protected static ?string $modelLabel = 'Venda';
+
     protected static ?string $pluralModelLabel = 'Vendas';
+
     protected static string $permissionEntity = 'sales';
 
     public static function form(Schema $schema): Schema
@@ -62,7 +65,6 @@ class SaleResource extends BaseAclResource
                     ->columns(2),
             ]);
     }
-
 
     public static function infolist(Schema $schema): Schema
     {
@@ -119,7 +121,7 @@ class SaleResource extends BaseAclResource
                     ->colors([
                         'warning' => 'draft',
                         'success' => 'confirmed',
-                        'danger'  => 'canceled',
+                        'danger' => 'canceled',
                     ]),
 
             ])
@@ -128,18 +130,65 @@ class SaleResource extends BaseAclResource
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()->authorize(fn (Sale $record): bool => static::canEdit($record)),
+                Action::make('cancel')
+                    ->label('Cancelar venda')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->schema([TextInput::make('reason')->label('Motivo do cancelamento')->required()->maxLength(255)])
+                    ->authorize(fn (Sale $record): bool => auth()->user()?->can('cancel-sales') && $record->status === 'confirmed' && ! $record->trashed())
+                    ->action(function (Sale $record, array $data): void {
+                        try {
+                            app(\App\Services\Stocks\CancelSaleService::class)->cancel($record, $data['reason']);
+                        } catch (\DomainException $exception) {
+                            throw \Illuminate\Validation\ValidationException::withMessages(['reason' => $exception->getMessage()]);
+                        }
+                        \Filament\Notifications\Notification::make()->title('Venda cancelada e estoque devolvido.')->success()->send();
+                    }),
                 DeleteAction::make(),
-                ForceDeleteAction::make(),
                 RestoreAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()->authorizeIndividualRecords(),
+                    RestoreBulkAction::make()->authorizeIndividualRecords(),
                 ]),
             ]);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return parent::canEdit($record) && ! $record->trashed() && $record->status === 'draft';
+    }
+
+    public static function canDelete($record): bool
+    {
+        return parent::canDelete($record) && $record->status === 'draft';
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()?->can('delete-sales') ?? false;
+    }
+
+    public static function canForceDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canForceDeleteAny(): bool
+    {
+        return false;
+    }
+
+    public static function canRestore(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return (auth()->user()?->can('edit-sales') ?? false) && $record->status === 'draft';
+    }
+
+    public static function canRestoreAny(): bool
+    {
+        return auth()->user()?->can('edit-sales') ?? false;
     }
 
     public static function getPages(): array
@@ -157,4 +206,3 @@ class SaleResource extends BaseAclResource
             ]);
     }
 }
-

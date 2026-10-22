@@ -10,8 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
+        'description',
         'slug',
         'sku',
         'barcode',
@@ -54,27 +56,38 @@ class Product extends Model
         return $this->belongsToMany(User::class, 'product_favorites')
             ->withTimestamps();
     }
+
     public function getFinalPriceAttribute(): float
     {
-        if ($this->is_on_sale && $this->promotional_price) {
-            return (float) $this->promotional_price;
-        }
-
-        return (float) $this->price;
+        return app(\App\Services\Products\ProductPricingService::class)->price($this);
     }
+
+    public function scopeOnPromotion(\Illuminate\Database\Eloquent\Builder $query): void
+    {
+        $query->where('is_on_sale', true)->where('promotional_price', '>', 0)->whereColumn('promotional_price', '<', 'price');
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Product $product): void {
+            if ((! $product->exists && (int) $product->stock !== 0)
+                || ($product->exists && $product->isDirty('stock'))) {
+                throw new \DomainException('Altere o estoque pelo serviço de movimentação ou contagem.');
+            }
+        });
+    }
+
     public function getUrlAttribute(): ?string
     {
         if (! $this->path) {
             return null;
         }
 
-        return asset('storage/' . $this->path);
+        return asset('storage/'.$this->path);
     }
-
 
     public function isLowStock(): bool
     {
         return $this->stock <= $this->min_stock;
     }
-
 }

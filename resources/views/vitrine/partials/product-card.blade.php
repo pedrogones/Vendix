@@ -1,5 +1,5 @@
 @php
-    $hasPromotion = !is_null($product->promotional_price);
+    $hasPromotion = app(\App\Services\Products\ProductPricingService::class)->isPromotion($product);
     $outOfStock = (int) $product->stock === 0;
     $imageUrl = $product->image?->url ?? getDefaultNoFile();
     $summary = \Illuminate\Support\Str::limit(trim(strip_tags((string) $product->description)), 70);

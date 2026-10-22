@@ -20,9 +20,9 @@ class ProductRuleService
             ->with('category')
             ->where(function ($query) use ($tokens): void {
                 foreach ($tokens as $token) {
-                    $query->orWhere('name', 'like', '%' . $token . '%')
-                        ->orWhere('description', 'like', '%' . $token . '%')
-                        ->orWhere('sku', 'like', '%' . $token . '%');
+                    $query->orWhere('name', 'like', '%'.$token.'%')
+                        ->orWhere('description', 'like', '%'.$token.'%')
+                        ->orWhere('sku', 'like', '%'.$token.'%');
                 }
             })
             ->orderByDesc('is_active')
@@ -38,7 +38,7 @@ class ProductRuleService
     {
         return Product::query()
             ->where('is_active', true)
-            ->whereNotNull('promotional_price')
+            ->onPromotion()
             ->orderByDesc('created_at')
             ->limit($limit)
             ->get();
@@ -51,7 +51,7 @@ class ProductRuleService
     {
         $normalPrice = (float) $product->price;
         $promotionalPrice = $product->promotional_price !== null ? (float) $product->promotional_price : null;
-        $isPromotion = $promotionalPrice !== null && $promotionalPrice > 0 && $promotionalPrice < $normalPrice;
+        $isPromotion = app(\App\Services\Products\ProductPricingService::class)->isPromotion($product);
 
         return [
             'unit_price' => $isPromotion ? $promotionalPrice : $normalPrice,
@@ -131,7 +131,7 @@ class ProductRuleService
 
     public function formatCurrency(float $value): string
     {
-        return 'R$ ' . number_format($value, 2, ',', '.');
+        return 'R$ '.number_format($value, 2, ',', '.');
     }
 
     /**

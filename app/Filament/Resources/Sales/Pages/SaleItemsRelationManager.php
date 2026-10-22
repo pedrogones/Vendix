@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Sales\Pages;
 
-
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -27,44 +26,44 @@ class SaleItemsRelationManager extends RelationManager
             ->schema([
                 Forms\Components\Select::make('product_id')
                     ->label('Produto')
+                    ->disabled(fn ($record) => $record !== null)
                     ->relationship('product', 'name')
                     ->searchable()
                     ->preload()
                     ->required()
                     ->reactive()
-                    ->afterStateUpdated(fn ($state, callable $set) =>
-                    $set('unit_price', \App\Models\Product::find($state)?->final_price)
+                    ->afterStateUpdated(fn ($state, callable $set) => $set('unit_price', \App\Models\Product::find($state)?->final_price)
                     ),
 
                 Forms\Components\TextInput::make('quantity')
                     ->label('Quantidade')
-                    ->numeric()
+                    ->integer()
                     ->minValue(1)
                     ->default(1)
                     ->required()
                     ->reactive()
-                    ->afterStateUpdated(fn (Get $get, Set $set) =>
-                        $set('total_price', max(0, ($get('quantity') ?? 1) * ($get('unit_price') ?? 0) - ($get('discount') ?? 0)))
+                    ->afterStateUpdated(fn (Get $get, Set $set) => $set('total_price', max(0, ($get('quantity') ?? 1) * ($get('unit_price') ?? 0) - ($get('discount') ?? 0)))
                     ),
 
                 Forms\Components\TextInput::make('unit_price')
                     ->label('Preço unitário')
+                    ->disabled()
+                    ->dehydrated()
                     ->numeric()
                     ->prefix('R$')
                     ->required()
                     ->reactive()
-                    ->afterStateUpdated(fn (Get $get, Set $set) =>
-                        $set('total_price', max(0, ($get('quantity') ?? 1) * ($get('unit_price') ?? 0) - ($get('discount') ?? 0)))
+                    ->afterStateUpdated(fn (Get $get, Set $set) => $set('total_price', max(0, ($get('quantity') ?? 1) * ($get('unit_price') ?? 0) - ($get('discount') ?? 0)))
                     ),
 
                 Forms\Components\TextInput::make('discount')
                     ->label('Desconto')
+                    ->minValue(0)
                     ->numeric()
                     ->prefix('R$')
                     ->default(0)
                     ->reactive()
-                    ->afterStateUpdated(fn (Get $get, Set $set) =>
-                        $set('total_price', max(0, ($get('quantity') ?? 1) * ($get('unit_price') ?? 0) - ($get('discount') ?? 0)))
+                    ->afterStateUpdated(fn (Get $get, Set $set) => $set('total_price', max(0, ($get('quantity') ?? 1) * ($get('unit_price') ?? 0) - ($get('discount') ?? 0)))
                     ),
 
                 Forms\Components\TextInput::make('total_price')
@@ -82,6 +81,7 @@ class SaleItemsRelationManager extends RelationManager
     {
         $data['discount'] = $data['discount'] ?? 0;
         $data['total_price'] = max(0, ($data['quantity'] * $data['unit_price']) - $data['discount']);
+
         return $data;
     }
 
@@ -89,6 +89,7 @@ class SaleItemsRelationManager extends RelationManager
     {
         $data['discount'] = $data['discount'] ?? 0;
         $data['total_price'] = max(0, ($data['quantity'] * $data['unit_price']) - $data['discount']);
+
         return $data;
     }
 
@@ -116,52 +117,50 @@ class SaleItemsRelationManager extends RelationManager
                     ->money('BRL'),
             ])
             ->headerActions([
-                CreateAction::make(),
+                CreateAction::make()->using(function (array $data) {
+                    return $this->itemAction(fn () => app(\App\Services\Sales\SaleItemService::class)->add($this->getOwnerRecord(), (int) $data['product_id'], (int) $data['quantity'], (float) ($data['discount'] ?? 0)));
+                }),
             ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()->using(function ($record, array $data) {
+                    return $this->itemAction(fn () => app(\App\Services\Sales\SaleItemService::class)->edit($this->getOwnerRecord(), $record, (int) $data['quantity'], (float) ($data['discount'] ?? 0)));
+                }),
+                DeleteAction::make()->using(function ($record): bool {
+                    $this->itemAction(fn () => app(\App\Services\Sales\SaleItemService::class)->remove($this->getOwnerRecord(), $record->id));
+
+                    return true;
+                }),
             ]);
     }
 
     protected function canCreate(): bool
     {
-        return $this->ownerRecord->status === 'draft';
+        return $this->canChangeItems();
     }
 
     protected function canEdit($record): bool
     {
-        return $this->ownerRecord->status === 'draft';
+        return $this->canChangeItems();
     }
 
     protected function canDelete($record): bool
     {
-        return $this->ownerRecord->status === 'draft';
+        return $this->canChangeItems();
     }
 
-    protected function recalcSaleTotal(): void
+    private function canChangeItems(): bool
     {
-        $total = $this->ownerRecord
-            ->items()
-            ->sum('total_price');
+        $sale = $this->getOwnerRecord();
 
-        $this->ownerRecord->update([
-            'total' => $total,
-        ]);
+        return $sale->status === 'draft' && (auth()->user()?->can($sale->user_id === auth()->id() ? 'create-sales' : 'edit-sales') ?? false);
     }
 
-    protected function afterCreate(): void
+    private function itemAction(callable $callback): mixed
     {
-        $this->recalcSaleTotal();
-    }
-
-    protected function afterEdit(): void
-    {
-        $this->recalcSaleTotal();
-    }
-
-    protected function afterDelete(): void
-    {
-        $this->recalcSaleTotal();
+        try {
+            return $callback();
+        } catch (\DomainException $exception) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['quantity' => $exception->getMessage()]);
+        }
     }
 }

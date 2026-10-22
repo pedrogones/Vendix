@@ -19,7 +19,7 @@ class VitrineController extends Controller
         $promotionalProducts = Product::query()
             ->with('image')
             ->where('is_active', true)
-            ->whereNotNull('promotional_price')
+            ->onPromotion()
             ->orderByDesc('created_at')
             ->limit(6)
             ->get();

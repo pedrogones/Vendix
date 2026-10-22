@@ -26,6 +26,7 @@ class ManageProducts extends ManageRecords
     {
         return [
             CreateAction::make('create')
+                ->authorize(fn () => ProductResource::canCreate())
                 ->label('Novo produto')
                 ->modalHeading('Cadastrar produto')
                 ->form(fn (Schema $schema) => ProductResource::form($schema))
@@ -66,7 +67,7 @@ class ManageProducts extends ManageRecords
                     }
                     unset($data['image_file']);
 
-                    return Product::create($data);
+                    return app(\App\Services\Products\ProductWriteService::class)->save($data);
                 }),
 
             Action::make('scan')
@@ -78,10 +79,15 @@ class ManageProducts extends ManageRecords
                 ->modalCancelActionLabel('Fechar'),
 
             Action::make('editFromScanner')
+                ->authorize(function (array $arguments): bool {
+                    $product = Product::find($arguments['product_id'] ?? null);
+
+                    return $product && ProductResource::canEdit($product);
+                })
                 ->label('Editar produto')
                 ->modalHeading('Editar produto')
                 ->modalSubmitActionLabel('Salvar')
-                ->form(fn (Schema $schema) => ProductResource::form($schema))
+                ->form(fn (Schema $schema, array $arguments) => ProductResource::form($schema->record(Product::find($arguments['product_id'] ?? null))))
                 ->mountUsing(function (Schema $schema, array $arguments) {
                     $this->editingProduct = Product::find($arguments['product_id'] ?? null);
 
@@ -92,6 +98,7 @@ class ManageProducts extends ManageRecords
                             ->send();
 
                         $this->unmountAction();
+
                         return;
                     }
 
@@ -101,10 +108,8 @@ class ManageProducts extends ManageRecords
                     }
                     $schema->fill($data);
                 })
-                ->action(function (array $data) {
-                    if (! $this->editingProduct) {
-                        return;
-                    }
+                ->action(function (array $data, array $arguments) {
+                    $product = Product::findOrFail($arguments['product_id'] ?? null);
                     if (
                         ! empty($data['image_file']) &&
                         $data['image_file'] instanceof TemporaryUploadedFile
@@ -121,7 +126,7 @@ class ManageProducts extends ManageRecords
 
                     unset($data['image_file']);
 
-                    $this->editingProduct->update($data);
+                    app(\App\Services\Products\ProductWriteService::class)->save($data, $product);
 
                     Notification::make()
                         ->title('Produto atualizado')
@@ -210,6 +215,7 @@ class ManageProducts extends ManageRecords
                 ->send();
 
             $this->dispatch('qr:result', found: false, message: 'Produto não encontrado. Tente novamente ou cadastre manualmente.');
+
             return;
         }
 
@@ -229,10 +235,10 @@ class ManageProducts extends ManageRecords
         }
 
         $this->mountAction('create', arguments: [
-            'barcode'       => $code,
-            'description'   => $lookup['description'],
-            'name'          => $lookup['name'] ?? null,
-            'category_id'   => $category?->id,
+            'barcode' => $code,
+            'description' => $lookup['description'],
+            'name' => $lookup['name'] ?? null,
+            'category_id' => $category?->id,
             'external_data' => $lookup,
         ]);
     }
@@ -441,7 +447,7 @@ class ManageProducts extends ManageRecords
         }
 
         if (strlen($code) === 12) {
-            $candidates[] = '0' . $code;
+            $candidates[] = '0'.$code;
         }
 
         if (strlen($code) === 13) {
@@ -461,6 +467,7 @@ class ManageProducts extends ManageRecords
 
         if ($urlCode) {
             $this->handleProductCode($urlCode);
+
             return;
         }
 
@@ -469,6 +476,7 @@ class ManageProducts extends ManageRecords
                 ->title('Link inválido')
                 ->danger()
                 ->send();
+
             return;
         }
 

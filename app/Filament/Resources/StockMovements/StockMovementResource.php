@@ -7,12 +7,10 @@ use App\Filament\Resources\StockMovements\Pages\ManageStockMovements;
 use App\Models\Sale;
 use App\Models\StockMovement;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
+use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
@@ -49,11 +47,15 @@ class StockMovementResource extends BaseAclResource
     protected static ?string $model = StockMovement::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;
+
     protected static string|null|\UnitEnum $navigationGroup = 'Estoque';
 
     protected static ?string $recordTitleAttribute = 'id';
+
     protected static ?string $modelLabel = 'Movimentação de estoque';
+
     protected static ?string $pluralModelLabel = 'Movimentações de estoque';
+
     protected static string $permissionEntity = 'stock-movements';
 
     public static function form(Schema $schema): Schema
@@ -66,37 +68,22 @@ class StockMovementResource extends BaseAclResource
                     ->searchable()
                     ->preload()
                     ->required(),
-                Select::make('user_id')
-                    ->label('Usuário')
-                    ->relationship('user', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->default(fn () => auth()->id())
-                    ->required(),
-                TextInput::make('reference_id')
-                    ->label('ID de referência')
-                    ->numeric()
-                    ->nullable(),
                 TextInput::make('quantity')
                     ->label('Quantidade')
                     ->required()
-                    ->numeric(),
+                    ->integer()
+                    ->minValue(1),
                 Select::make('reason')
                     ->label('Motivo')
-                    ->options(static::$reasonLabels)
+                    ->options(array_diff_key(static::$reasonLabels, ['sale' => true]))
                     ->required(),
                 TextInput::make('reference')
-                    ->label('Referência')
+                    ->label('Justificativa')
                     ->maxLength(255)
-                    ->nullable(),
+                    ->required(),
                 Select::make('type')
                     ->label('Tipo de movimento')
-                    ->options(static::$typeLabels)
-                    ->required(),
-                Select::make('reference_type')
-                    ->label('Origem')
-                    ->options(static::$referenceTypeLabels)
-                    ->default('manual')
+                    ->options(['in' => 'Entrada', 'out' => 'Saída'])
                     ->required(),
             ]);
     }
@@ -111,6 +98,7 @@ class StockMovementResource extends BaseAclResource
                 TextEntry::make('user.name')
                     ->label('Usuário')
                     ->placeholder('-'),
+                TextEntry::make('compensates_id')->label('Movimento compensado')->placeholder('-'),
                 TextEntry::make('reference_id')
                     ->label('ID de referência')
                     ->numeric()
@@ -154,6 +142,7 @@ class StockMovementResource extends BaseAclResource
                 TextColumn::make('user.name')->label('Usuário')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('compensates_id')->label('Compensa movimento')->placeholder('-'),
                 TextColumn::make('quantity')->label('Quantidade')
                     ->numeric()
                     ->sortable(),
@@ -182,14 +171,38 @@ class StockMovementResource extends BaseAclResource
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                Action::make('compensate')
+                    ->label('Compensar movimento')
+                    ->requiresConfirmation()
+                    ->authorize(fn (StockMovement $record): bool => (auth()->user()?->can('create-stock-movements') ?? false)
+                        && $record->reference_type === 'manual' && ! $record->compensates_id
+                        && in_array($record->type, ['in', 'out'], true)
+                        && ! StockMovement::query()->where('compensates_id', $record->id)->exists())
+                    ->schema([Textarea::make('description')->label('Motivo da correção')->required()->maxLength(255)])
+                    ->action(function (StockMovement $record, array $data): void {
+                        try {
+                            app(\App\Services\Stocks\StockService::class)->compensate($record, $data['description']);
+                        } catch (\DomainException $exception) {
+                            throw \Illuminate\Validation\ValidationException::withMessages(['description' => $exception->getMessage()]);
+                        }
+                        \Filament\Notifications\Notification::make()->title('Movimento compensado.')->success()->send();
+                    }),
             ]);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
     }
 
     public static function getPages(): array
@@ -199,4 +212,3 @@ class StockMovementResource extends BaseAclResource
         ];
     }
 }
-
