@@ -80,3 +80,12 @@ Na execução desta entrega foi usado um contêiner MySQL 8.4 sem portas publica
 - Pint: verificação dos 30 arquivos PHP alterados aprovada; os dois arquivos ajustados por último também foram verificados novamente.
 - `git diff --check`: aprovado.
 - O MySQL temporário é removido ao encerrar a validação. Nenhum banco da operação foi consultado ou alterado.
+
+
+## Correção após validação manual — produto criado inativo
+
+O teste manual de balcão revelou um problema do formulário de criação: o `mountUsing` personalizado não inicializava os valores padrão ao abrir um cadastro vazio. Ao preencher dados sugeridos pelo scanner, campos ausentes nas sugestões também podiam perder os padrões. Um teste Livewire reproduziu `is_active = false`, apesar do campo declarar `default(true)`.
+
+Correção: inicializar os padrões do schema e mesclar as sugestões sobre esse estado. O produto inicia ativo tanto no cadastro vazio quanto no cadastro assistido, mantendo a possibilidade de o operador desativá-lo explicitamente. A mensagem de bloqueio da venda agora informa que o produto está inativo e precisa ser ativado no cadastro.
+
+Produtos existentes não são ativados em lote. Para o produto de teste já criado, editar apenas o campo Ativo, salvar e repetir a venda de duas unidades; o saldo anterior de 8 não deve ser alterado durante essa edição.

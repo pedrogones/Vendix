@@ -31,6 +31,7 @@ class ManageProducts extends ManageRecords
                 ->modalHeading('Cadastrar produto')
                 ->form(fn (Schema $schema) => ProductResource::form($schema))
                 ->mountUsing(function (Schema $schema, array $arguments) {
+                    $schema->fill();
                     if (! empty($arguments)) {
                         if (
                             filled($arguments['name'] ?? null) &&
@@ -48,7 +49,7 @@ class ManageProducts extends ManageRecords
                             $arguments['slug'] = $slug;
                         }
 
-                        $schema->fill($arguments);
+                        $schema->fill(array_replace($schema->getRawState(), $arguments));
                     }
                 })
                 ->using(function (array $data) {

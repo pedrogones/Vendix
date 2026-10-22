@@ -468,4 +468,25 @@ class SalesStockIntegrityTest extends TestCase
         $this->assertSame(20.0, $order['total']);
         $this->assertSame(8, (int) $product->fresh()->stock);
     }
+
+    public static function productCreateArguments(): array
+    {
+        return [[[]], [['name' => 'Sugestão da API', 'barcode' => '7891910000197']]];
+    }
+
+    #[DataProvider('productCreateArguments')]
+    public function test_new_product_form_initializes_active_and_stock_defaults(array $arguments): void
+    {
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+        \Livewire\Livewire::test(\App\Filament\Resources\Products\Pages\ManageProducts::class)
+            ->mountAction('create', arguments: $arguments)
+            ->assertActionDataSet(['is_active' => true, 'stock' => 0])
+            ->fillForm(['name' => 'Produto com padrões', 'slug' => 'produto-com-padroes', 'price' => 10, 'stock' => 8])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+        $product = Product::where('slug', 'produto-com-padroes')->firstOrFail();
+        $this->assertTrue($product->is_active);
+        $sale = $this->sale($product);
+        $this->assertSame('20.00', $sale->total);
+    }
 }

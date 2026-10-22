@@ -36,7 +36,7 @@ class SaleItemService
             $locked = $this->lockDraft($sale);
             $product = Product::query()->lockForUpdate()->findOrFail($productId);
             if (! $product->is_active) {
-                throw new \DomainException('Produto indisponível.');
+                throw new \DomainException(sprintf('O produto "%s" está inativo. Ative-o no cadastro para vender.', $product->name));
             }
             $alreadyAdded = (int) $locked->items()->where('product_id', $productId)
                 ->when($item, fn ($query) => $query->where('id', '!=', $item->id))->sum('quantity');
