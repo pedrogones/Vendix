@@ -58,14 +58,16 @@ class ControlPanel extends Page
 
         $todaySalesQuery = Sale::query()
             ->where('status', 'confirmed')
+            ->where('payment_status', Sale::PAYMENT_PAID)
             ->whereBetween('created_at', [$todayStart, $todayEnd]);
 
-        $todayTotal = (float) $todaySalesQuery->sum('total');
-        $todayCount = (int) $todaySalesQuery->count();
+        $todayTotal = (float) (clone $todaySalesQuery)->sum('total');
+        $todayCount = (int) (clone $todaySalesQuery)->count();
         $todayTicket = $todayCount > 0 ? $todayTotal / $todayCount : 0.0;
 
         $monthTotal = (float) Sale::query()
             ->where('status', 'confirmed')
+            ->where('payment_status', Sale::PAYMENT_PAID)
             ->whereBetween('created_at', [$monthStart, $monthEnd])
             ->sum('total');
 
@@ -89,6 +91,7 @@ class ControlPanel extends Page
         $recentSales = Sale::query()
             ->with(['client', 'user'])
             ->where('status', 'confirmed')
+            ->where('payment_status', Sale::PAYMENT_PAID)
             ->orderByDesc('created_at')
             ->limit(6)
             ->get()
@@ -106,6 +109,7 @@ class ControlPanel extends Page
         return [
             'kpis' => [
                 'today_total' => $todayTotal,
+                'today_count' => $todayCount,
                 'today_ticket' => $todayTicket,
                 'month_total' => $monthTotal,
                 'products_total' => $productsTotal,
@@ -131,6 +135,7 @@ class ControlPanel extends Page
         $sales = Sale::query()
             ->selectRaw('DATE(created_at) as date, SUM(total) as total')
             ->where('status', 'confirmed')
+            ->where('payment_status', Sale::PAYMENT_PAID)
             ->whereBetween('created_at', [$start, $end])
             ->groupBy('date')
             ->orderBy('date')

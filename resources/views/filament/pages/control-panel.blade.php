@@ -7,567 +7,453 @@
         $updatedAt = $data['meta']['updated_at'] ?? '-';
         $userName = auth()->user()?->name ?? 'Usuário';
         $urls = $urls ?? [];
+        $lowStockCount = (int) ($kpis['low_stock'] ?? 0);
+        $todayCount = (int) ($kpis['today_count'] ?? 0);
     @endphp
 
     @once
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <style>
-            .control-panel {
-                --bg: #f5f7fb;
-                --card: #ffffff;
-                --text: #0f172a;
-                --muted: #64748b;
-                --border: rgba(15, 23, 42, 0.08);
-                --accent: #2563eb;
-                --accent-2: #16a34a;
-                --accent-3: #0ea5e9;
-                --warning: #f59e0b;
-                --danger: #ef4444;
-                --shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
-                font-family: "Sora", sans-serif;
-                color: var(--text);
+            .cp {
+                --cp-bg: transparent;
+                --cp-surface: #ffffff;
+                --cp-subtle: #f4f4f5;
+                --cp-border: #e4e4e7;
+                --cp-text: #18181b;
+                --cp-muted: #71717a;
+                --cp-accent: #b45309;
+                --cp-accent-soft: #fff7ed;
+                --cp-ok: #15803d;
+                --cp-warn: #b45309;
+                --cp-danger: #b91c1c;
+                --cp-danger-soft: #fef2f2;
+                color: var(--cp-text);
+                font-size: 14px;
+                min-width: 0;
             }
 
-            .dark .control-panel {
-                --bg: #0b1120;
-                --card: rgba(15, 23, 42, 0.92);
-                --text: #e2e8f0;
-                --muted: #94a3b8;
-                --border: rgba(148, 163, 184, 0.18);
-                --shadow: none;
+            .dark .cp {
+                --cp-surface: #18181b;
+                --cp-subtle: #27272a;
+                --cp-border: #3f3f46;
+                --cp-text: #fafafa;
+                --cp-muted: #a1a1aa;
+                --cp-accent: #fbbf24;
+                --cp-accent-soft: rgba(251, 191, 36, 0.12);
+                --cp-ok: #4ade80;
+                --cp-warn: #fbbf24;
+                --cp-danger: #f87171;
+                --cp-danger-soft: rgba(248, 113, 113, 0.12);
             }
 
-            .control-panel * {
-                box-sizing: border-box;
+            .cp *, .cp *::before, .cp *::after { box-sizing: border-box; }
+
+            .cp-head {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: flex-end;
+                justify-content: space-between;
+                gap: 16px;
+                margin-bottom: 20px;
             }
 
-            .cp-shell {
-                background:
-                    radial-gradient(900px 420px at 10% -10%, rgba(37, 99, 235, 0.12), transparent 55%),
-                    radial-gradient(800px 420px at 100% 0%, rgba(14, 165, 233, 0.12), transparent 55%),
-                    radial-gradient(700px 420px at 50% 100%, rgba(22, 163, 74, 0.12), transparent 55%),
-                    var(--bg);
-                border: 1px solid var(--border);
-                border-radius: 24px;
-                padding: 24px;
+            .cp-head h1 {
+                margin: 0;
+                font-size: clamp(1.35rem, 3vw, 1.75rem);
+                font-weight: 650;
+                letter-spacing: -0.02em;
+                line-height: 1.2;
             }
 
-            .cp-hero {
+            .cp-head p {
+                margin: 6px 0 0;
+                color: var(--cp-muted);
+                font-size: 0.9rem;
+                max-width: 36rem;
+                line-height: 1.5;
+            }
+
+            .cp-updated {
+                color: var(--cp-muted);
+                font-size: 0.75rem;
+                white-space: nowrap;
+            }
+
+            .cp-actions {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            @media (min-width: 720px) {
+                .cp-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            }
+
+            .cp-action {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                min-height: 72px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                border: 1px solid var(--cp-border);
+                background: var(--cp-surface);
+                text-decoration: none;
+                color: inherit;
+                transition: border-color .15s ease, background .15s ease;
+            }
+
+            .cp-action:hover {
+                border-color: var(--cp-accent);
+                background: var(--cp-accent-soft);
+            }
+
+            .cp-action strong {
+                font-size: 0.92rem;
+                font-weight: 600;
+            }
+
+            .cp-action span {
+                font-size: 0.75rem;
+                color: var(--cp-muted);
+                line-height: 1.35;
+            }
+
+            .cp-action.is-primary {
+                background: var(--cp-accent);
+                border-color: transparent;
+                color: #fff7ed;
+            }
+
+            .dark .cp-action.is-primary {
+                color: #18181b;
+            }
+
+            .cp-action.is-primary span {
+                color: inherit;
+                opacity: .85;
+            }
+
+            .cp-action.is-primary:hover {
+                filter: brightness(1.05);
+                background: var(--cp-accent);
+            }
+
+            .cp-kpis {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            @media (min-width: 900px) {
+                .cp-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            }
+
+            .cp-kpi {
+                padding: 16px;
+                border-radius: 12px;
+                border: 1px solid var(--cp-border);
+                background: var(--cp-surface);
+                min-width: 0;
+            }
+
+            .cp-kpi .label {
+                font-size: 0.7rem;
+                font-weight: 600;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--cp-muted);
+            }
+
+            .cp-kpi .value {
+                margin-top: 8px;
+                font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+                font-weight: 650;
+                font-variant-numeric: tabular-nums;
+                letter-spacing: -0.02em;
+                line-height: 1.2;
+                word-break: break-word;
+            }
+
+            .cp-kpi .hint {
+                margin-top: 6px;
+                font-size: 0.72rem;
+                color: var(--cp-muted);
+            }
+
+            .cp-alert {
                 display: flex;
                 flex-wrap: wrap;
                 align-items: center;
                 justify-content: space-between;
-                gap: 20px;
-                margin-bottom: 24px;
+                gap: 12px;
+                margin-bottom: 20px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                border: 1px solid color-mix(in srgb, var(--cp-danger) 25%, var(--cp-border));
+                background: var(--cp-danger-soft);
             }
 
-            .cp-hero-main {
+            .cp-alert.is-ok {
+                border-color: var(--cp-border);
+                background: var(--cp-subtle);
+            }
+
+            .cp-alert strong {
+                display: block;
+                font-size: 0.95rem;
+                font-weight: 600;
+            }
+
+            .cp-alert p {
+                margin: 4px 0 0;
+                font-size: 0.8rem;
+                color: var(--cp-muted);
+            }
+
+            .cp-alert a {
+                display: inline-flex;
+                align-items: center;
+                min-height: 36px;
+                padding: 0 14px;
+                border-radius: 8px;
+                border: 1px solid var(--cp-border);
+                background: var(--cp-surface);
+                color: var(--cp-text);
+                text-decoration: none;
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
+
+            .cp-main {
+                display: grid;
+                gap: 12px;
+            }
+
+            @media (min-width: 960px) {
+                .cp-main { grid-template-columns: 1.4fr 1fr; align-items: start; }
+            }
+
+            .cp-card {
+                border: 1px solid var(--cp-border);
+                border-radius: 12px;
+                background: var(--cp-surface);
+                padding: 16px;
+                min-width: 0;
+            }
+
+            .cp-card-head {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 14px;
+            }
+
+            .cp-card-head h2 {
+                margin: 0;
+                font-size: 0.95rem;
+                font-weight: 650;
+            }
+
+            .cp-card-head span {
+                font-size: 0.72rem;
+                color: var(--cp-muted);
+            }
+
+            .cp-chart {
+                position: relative;
+                height: 220px;
+            }
+
+            .cp-list {
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
             }
 
-            .cp-hero-main .eyebrow {
-                font-size: 11px;
-                letter-spacing: 0.18em;
-                text-transform: uppercase;
-                color: var(--accent);
-                font-weight: 600;
-            }
-
-            .cp-hero-main h1 {
-                font-family: "Newsreader", serif;
-                font-size: clamp(26px, 3vw, 34px);
-                margin: 0;
-                font-weight: 600;
-            }
-
-            .cp-hero-main p {
-                margin: 0;
-                color: var(--muted);
-                max-width: 520px;
-                font-size: 14px;
-                line-height: 1.6;
-            }
-
-            .cp-hero-meta {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 12px;
-                min-width: 260px;
-            }
-
-            .meta-card {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 16px;
-                padding: 14px 16px;
-                box-shadow: var(--shadow);
-            }
-
-            .meta-card.accent {
-                background: rgba(37, 99, 235, 0.08);
-                border-color: rgba(37, 99, 235, 0.22);
-            }
-
-            .meta-label {
-                font-size: 11px;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--muted);
-                font-weight: 600;
-            }
-
-            .meta-value {
-                margin-top: 6px;
-                font-size: 18px;
-                font-weight: 600;
-                color: var(--text);
-            }
-
-            .kpi-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-                gap: 16px;
-                margin-bottom: 24px;
-            }
-
-            .kpi-card {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 18px;
-                padding: 16px;
-                box-shadow: var(--shadow);
-                position: relative;
-                overflow: hidden;
-                animation: rise 0.6s ease both;
-            }
-
-            .kpi-card::after {
-                content: "";
-                position: absolute;
-                inset: auto -30% -60% auto;
-                width: 110px;
-                height: 110px;
-                border-radius: 50%;
-                background: rgba(37, 99, 235, 0.08);
-            }
-
-            .kpi-card .icon {
-                width: 40px;
-                height: 40px;
-                display: grid;
-                place-items: center;
-                border-radius: 12px;
-                background: rgba(37, 99, 235, 0.12);
-                color: var(--accent);
-                font-size: 16px;
-            }
-
-            .kpi-card .label {
-                margin-top: 10px;
-                font-size: 11px;
-                text-transform: uppercase;
-                letter-spacing: 0.14em;
-                color: var(--muted);
-            }
-
-            .kpi-card .value {
-                margin-top: 6px;
-                font-size: 20px;
-                font-weight: 600;
-                color: var(--text);
-            }
-
-            .action-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-                gap: 14px;
-                margin-bottom: 24px;
-            }
-
-            .action-card {
-                display: flex;
-                align-items: center;
-                gap: 14px;
-                padding: 14px 16px;
-                border-radius: 16px;
-                background: var(--card);
-                border: 1px solid var(--border);
-                text-decoration: none;
-                color: inherit;
-                box-shadow: var(--shadow);
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
-            }
-
-            .action-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 18px 30px rgba(15, 23, 42, 0.14);
-            }
-
-            .action-card .icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 12px;
-                display: grid;
-                place-items: center;
-                background: rgba(14, 165, 233, 0.12);
-                color: var(--accent-3);
-            }
-
-            .action-card strong {
-                display: block;
-                font-size: 14px;
-                font-weight: 600;
-            }
-
-            .action-card span {
-                display: block;
-                font-size: 12px;
-                color: var(--muted);
-            }
-
-            .grid-two {
-                display: grid;
-                gap: 16px;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                margin-bottom: 24px;
-            }
-
-            .card {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 20px;
-                padding: 18px;
-                box-shadow: var(--shadow);
-                animation: rise 0.6s ease both;
-            }
-
-            .card-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 12px;
-            }
-
-            .card-header h3 {
-                margin: 0;
-                font-size: 15px;
-                font-weight: 600;
-            }
-
-            .card-header span {
-                font-size: 12px;
-                color: var(--muted);
-            }
-
-            .chart-wrap {
-                position: relative;
-                height: 260px;
-            }
-
-            .list {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .list-item {
+            .cp-row {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 gap: 12px;
                 padding: 10px 12px;
-                border-radius: 12px;
-                background: rgba(15, 23, 42, 0.04);
-                font-size: 13px;
+                border-radius: 10px;
+                background: var(--cp-subtle);
+                min-width: 0;
             }
 
-            .dark .list-item {
-                background: rgba(148, 163, 184, 0.12);
+            .cp-row .meta {
+                min-width: 0;
             }
 
-            .list-item .meta {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-            }
-
-            .list-item strong {
+            .cp-row .meta strong {
+                display: block;
+                font-size: 0.85rem;
                 font-weight: 600;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
-            .badge {
+            .cp-row .meta span {
+                display: block;
+                margin-top: 2px;
+                font-size: 0.72rem;
+                color: var(--cp-muted);
+            }
+
+            .cp-row .amount {
+                font-size: 0.85rem;
+                font-weight: 650;
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+
+            .cp-pill {
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
-                padding: 4px 10px;
+                padding: 3px 8px;
                 border-radius: 999px;
-                background: rgba(239, 68, 68, 0.12);
-                color: var(--danger);
-                font-size: 11px;
-                font-weight: 600;
+                font-size: 0.72rem;
+                font-weight: 650;
+                font-variant-numeric: tabular-nums;
+                background: var(--cp-danger-soft);
+                color: var(--cp-danger);
             }
 
-            .trend-summary {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-                gap: 10px;
-                margin-top: 16px;
-            }
-
-            .trend-pill {
-                border-radius: 14px;
-                padding: 10px 12px;
-                border: 1px solid var(--border);
-                background: rgba(37, 99, 235, 0.08);
-                font-size: 12px;
-            }
-
-            .grid-three {
-                display: grid;
-                gap: 16px;
-                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            }
-
-            @keyframes rise {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-
-            @media (max-width: 768px) {
-                .cp-shell {
-                    padding: 16px;
-                }
-
-                .cp-hero-meta {
-                    width: 100%;
-                }
+            .cp-empty {
+                padding: 18px 12px;
+                text-align: center;
+                color: var(--cp-muted);
+                font-size: 0.85rem;
             }
         </style>
     @endonce
 
-    <div class="control-panel">
-        <div class="cp-shell">
-            <div class="cp-hero">
-                <div class="cp-hero-main">
-                    <span class="eyebrow">Painel de Controle</span>
-                    <h1>Olá, {{ $userName }}</h1>
-                    <p>Resumo rápido do dia para acompanhar vendas, estoque e ações essenciais.</p>
-                </div>
-                <div class="cp-hero-meta">
-                    <div class="meta-card">
-                        <div class="meta-label">Atualizado</div>
-                        <div class="meta-value">{{ $updatedAt }}</div>
-                    </div>
-                    <div class="meta-card accent">
-                        <div class="meta-label">Estoque crítico</div>
-                        <div class="meta-value">{{ $kpis['low_stock'] ?? 0 }} itens</div>
-                    </div>
-                </div>
+    <div class="cp">
+        <header class="cp-head">
+            <div>
+                <h1>Olá, {{ $userName }}</h1>
+                <p>Vendas recebidas, estoque e atalhos do dia. Valores de faturamento consideram só vendas confirmadas e pagas.</p>
             </div>
+            <div class="cp-updated">Atualizado {{ $updatedAt }}</div>
+        </header>
 
-            <div class="kpi-grid">
-                <div class="kpi-card" style="animation-delay: 0ms;">
-                    <div class="icon"><i class="fa-solid fa-sack-dollar"></i></div>
-                    <div class="label">Vendas hoje</div>
-                    <div class="value">R$ {{ number_format($kpis['today_total'] ?? 0, 2, ',', '.') }}</div>
-                </div>
-                <div class="kpi-card" style="animation-delay: 80ms;">
-                    <div class="icon" style="background: rgba(22, 163, 74, 0.12); color: var(--accent-2);">
-                        <i class="fa-solid fa-receipt"></i>
-                    </div>
-                    <div class="label">Ticket médio</div>
-                    <div class="value">R$ {{ number_format($kpis['today_ticket'] ?? 0, 2, ',', '.') }}</div>
-                </div>
-                <div class="kpi-card" style="animation-delay: 160ms;">
-                    <div class="icon" style="background: rgba(14, 165, 233, 0.12); color: var(--accent-3);">
-                        <i class="fa-solid fa-chart-line"></i>
-                    </div>
-                    <div class="label">Faturamento do mês</div>
-                    <div class="value">R$ {{ number_format($kpis['month_total'] ?? 0, 2, ',', '.') }}</div>
-                </div>
-                <div class="kpi-card" style="animation-delay: 240ms;">
-                    <div class="icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning);">
-                        <i class="fa-solid fa-box"></i>
-                    </div>
-                    <div class="label">Produtos cadastrados</div>
-                    <div class="value">{{ $kpis['products_total'] ?? 0 }}</div>
-                </div>
-                <div class="kpi-card" style="animation-delay: 320ms;">
-                    <div class="icon" style="background: rgba(239, 68, 68, 0.12); color: var(--danger);">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                    <div class="label">Itens com estoque baixo</div>
-                    <div class="value">{{ $kpis['low_stock'] ?? 0 }}</div>
-                </div>
-            </div>
+        <nav class="cp-actions" aria-label="Ações rápidas">
+            <a class="cp-action is-primary" href="{{ $urls['start_sale'] ?? '#' }}">
+                <strong>Nova venda</strong>
+                <span>Abrir o PDV</span>
+            </a>
+            <a class="cp-action" href="{{ $urls['products'] ?? '#' }}">
+                <strong>Produtos</strong>
+                <span>Cadastro e preços</span>
+            </a>
+            <a class="cp-action" href="{{ $urls['stock'] ?? '#' }}">
+                <strong>Estoque</strong>
+                <span>Movimentações</span>
+            </a>
+            <a class="cp-action" href="{{ $urls['report'] ?? '#' }}">
+                <strong>Relatório</strong>
+                <span>Vendas detalhadas</span>
+            </a>
+        </nav>
 
-            <div class="action-grid">
-                <a class="action-card" href="{{ $urls['start_sale'] ?? '#' }}">
-                    <div class="icon"><i class="fa-solid fa-cash-register"></i></div>
-                    <div>
-                        <strong>Nova venda</strong>
-                        <span>Abra um atendimento rápido</span>
-                    </div>
-                </a>
-                <a class="action-card" href="{{ $urls['products'] ?? '#' }}">
-                    <div class="icon" style="background: rgba(22, 163, 74, 0.12); color: var(--accent-2);">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                    </div>
-                    <div>
-                        <strong>Produtos</strong>
-                        <span>Cadastre ou atualize itens</span>
-                    </div>
-                </a>
-                <a class="action-card" href="{{ $urls['stock'] ?? '#' }}">
-                    <div class="icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning);">
-                        <i class="fa-solid fa-warehouse"></i>
-                    </div>
-                    <div>
-                        <strong>Estoque</strong>
-                        <span>Registre entradas e saídas</span>
-                    </div>
-                </a>
-                <a class="action-card" href="{{ $urls['report'] ?? '#' }}">
-                    <div class="icon" style="background: rgba(37, 99, 235, 0.12); color: var(--accent);">
-                        <i class="fa-solid fa-file-lines"></i>
-                    </div>
-                    <div>
-                        <strong>Relatórios</strong>
-                        <span>Analise resultados detalhados</span>
-                    </div>
-                </a>
-            </div>
+        <section class="cp-kpis" aria-label="Indicadores">
+            <article class="cp-kpi">
+                <div class="label">Recebido hoje</div>
+                <div class="value">R$ {{ number_format($kpis['today_total'] ?? 0, 2, ',', '.') }}</div>
+                <div class="hint">{{ $todayCount }} {{ $todayCount === 1 ? 'venda' : 'vendas' }}</div>
+            </article>
+            <article class="cp-kpi">
+                <div class="label">Ticket médio</div>
+                <div class="value">R$ {{ number_format($kpis['today_ticket'] ?? 0, 2, ',', '.') }}</div>
+                <div class="hint">Hoje</div>
+            </article>
+            <article class="cp-kpi">
+                <div class="label">Recebido no mês</div>
+                <div class="value">R$ {{ number_format($kpis['month_total'] ?? 0, 2, ',', '.') }}</div>
+                <div class="hint">Confirmadas e pagas</div>
+            </article>
+            <article class="cp-kpi">
+                <div class="label">Produtos</div>
+                <div class="value">{{ $kpis['products_total'] ?? 0 }}</div>
+                <div class="hint">No catálogo</div>
+            </article>
+        </section>
 
-            <div class="grid-two">
-                <div class="card" style="animation-delay: 120ms;">
-                    <div class="card-header">
-                        <h3>Vendas nos últimos 7 dias</h3>
-                        <span>Tendência diária</span>
-                    </div>
-                    <div class="chart-wrap">
-                        <canvas id="controlPanelTrend"></canvas>
-                    </div>
-                    <div class="trend-summary">
-                        <div class="trend-pill">
-                            <strong>Hoje:</strong>
-                            R$ {{ number_format($kpis['today_total'] ?? 0, 2, ',', '.') }}
-                        </div>
-                        <div class="trend-pill">
-                            <strong>Mês:</strong>
-                            R$ {{ number_format($kpis['month_total'] ?? 0, 2, ',', '.') }}
-                        </div>
-                    </div>
-                </div>
-                <div class="card" style="animation-delay: 200ms;">
-                    <div class="card-header">
-                        <h3>Alertas de estoque</h3>
-                        <span>Itens abaixo do mínimo</span>
-                    </div>
-                    <div class="list">
-                        @forelse ($lowStock as $item)
-                            <div class="list-item">
-                                <div class="meta">
-                                    <strong>{{ $item['name'] }}</strong>
-                                    <span class="text-xs text-gray-500">Mínimo: {{ $item['min_stock'] }}</span>
-                                </div>
-                                <span class="badge">{{ $item['stock'] }} un</span>
-                            </div>
-                        @empty
-                            <div class="list-item">
-                                <span>Nenhum item crítico no momento.</span>
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
+        <aside class="cp-alert {{ $lowStockCount > 0 ? '' : 'is-ok' }}" aria-live="polite">
+            <div>
+                <strong>
+                    @if ($lowStockCount > 0)
+                        {{ $lowStockCount }} {{ $lowStockCount === 1 ? 'item' : 'itens' }} com estoque baixo
+                    @else
+                        Estoque sem alertas críticos
+                    @endif
+                </strong>
+                <p>
+                    @if ($lowStockCount > 0)
+                        Priorize reposição ou ajuste de mínimo.
+                    @else
+                        Nenhum produto está no ou abaixo do mínimo agora.
+                    @endif
+                </p>
             </div>
+            <a href="{{ $urls['stock'] ?? '#' }}">Ver estoque</a>
+        </aside>
 
-            <div class="grid-three">
-                <div class="card" style="animation-delay: 160ms;">
-                    <div class="card-header">
-                        <h3>Últimas vendas</h3>
-                        <span>Atendimentos confirmados</span>
-                    </div>
-                    <div class="list">
-                        @forelse ($recentSales as $sale)
-                            <div class="list-item">
-                                <div class="meta">
-                                    <strong>#{{ $sale['id'] }}</strong>
-                                    <span class="text-xs text-gray-500">{{ $sale['client'] }} - {{ $sale['created_at'] }}</span>
-                                </div>
-                                <strong>R$ {{ number_format($sale['total'] ?? 0, 2, ',', '.') }}</strong>
-                            </div>
-                        @empty
-                            <div class="list-item">
-                                <span>Sem vendas recentes.</span>
-                            </div>
-                        @endforelse
-                    </div>
+        <div class="cp-main">
+            <section class="cp-card">
+                <div class="cp-card-head">
+                    <h2>Recebido nos últimos 7 dias</h2>
+                    <span>R$ por dia</span>
                 </div>
-                <div class="card" style="animation-delay: 240ms;">
-                    <div class="card-header">
-                        <h3>Equipe em foco</h3>
-                        <span>Vendas do dia</span>
-                    </div>
-                    <div class="list">
-                        <div class="list-item">
-                            <div class="meta">
-                                <strong>Operador ativo</strong>
-                                <span class="text-xs text-gray-500">{{ $userName }}</span>
-                            </div>
-                            <strong>{{ $kpis['today_total'] ?? 0 ? 'Online' : 'Aguardando vendas' }}</strong>
-                        </div>
-                        <div class="list-item">
-                            <div class="meta">
-                                <strong>Status de caixa</strong>
-                                <span class="text-xs text-gray-500">Vendas confirmadas</span>
-                            </div>
-                            <strong>{{ $kpis['today_total'] ?? 0 ? 'Ativo' : 'Sem movimento' }}</strong>
-                        </div>
-                        <div class="list-item">
-                            <div class="meta">
-                                <strong>Produtos ativos</strong>
-                                <span class="text-xs text-gray-500">Catálogo disponível</span>
-                            </div>
-                            <strong>{{ $kpis['products_total'] ?? 0 }}</strong>
-                        </div>
-                    </div>
+                <div class="cp-chart">
+                    <canvas id="controlPanelTrend" aria-label="Gráfico de recebimentos"></canvas>
                 </div>
-                <div class="card" style="animation-delay: 320ms;">
-                    <div class="card-header">
-                        <h3>Checklist do dia</h3>
-                        <span>Ações rápidas</span>
-                    </div>
-                    <div class="list">
-                        <div class="list-item">
-                            <div class="meta">
-                                <strong>Revisar estoque crítico</strong>
-                                <span class="text-xs text-gray-500">{{ $kpis['low_stock'] ?? 0 }} itens</span>
-                            </div>
-                            <strong>Prioridade alta</strong>
-                        </div>
-                        <div class="list-item">
-                            <div class="meta">
-                                <strong>Atualizar preços</strong>
-                                <span class="text-xs text-gray-500">Produtos em promoção</span>
-                            </div>
-                            <strong>Planejado</strong>
-                        </div>
-                        <div class="list-item">
-                            <div class="meta">
-                                <strong>Gerar relatório</strong>
-                                <span class="text-xs text-gray-500">Resumo do dia</span>
-                            </div>
-                            <strong>Recomendado</strong>
-                        </div>
-                    </div>
+            </section>
+
+            <section class="cp-card">
+                <div class="cp-card-head">
+                    <h2>Estoque baixo</h2>
+                    <span>Até 5 itens</span>
                 </div>
-            </div>
+                <div class="cp-list">
+                    @forelse ($lowStock as $item)
+                        <div class="cp-row">
+                            <div class="meta">
+                                <strong>{{ $item['name'] }}</strong>
+                                <span>Mínimo {{ $item['min_stock'] }}</span>
+                            </div>
+                            <span class="cp-pill">{{ $item['stock'] }} un</span>
+                        </div>
+                    @empty
+                        <div class="cp-empty">Nada crítico no momento.</div>
+                    @endforelse
+                </div>
+            </section>
         </div>
+
+        <section class="cp-card" style="margin-top: 12px;">
+            <div class="cp-card-head">
+                <h2>Últimas vendas recebidas</h2>
+                <span>Mais recentes</span>
+            </div>
+            <div class="cp-list">
+                @forelse ($recentSales as $sale)
+                    <div class="cp-row">
+                        <div class="meta">
+                            <strong>#{{ $sale['id'] }} · {{ $sale['user'] }}</strong>
+                            <span>{{ $sale['client'] }} · {{ $sale['created_at'] }}</span>
+                        </div>
+                        <div class="amount">R$ {{ number_format($sale['total'] ?? 0, 2, ',', '.') }}</div>
+                    </div>
+                @empty
+                    <div class="cp-empty">Ainda não há vendas recebidas para mostrar.</div>
+                @endforelse
+            </div>
+        </section>
     </div>
 
     @once
@@ -575,28 +461,39 @@
         <script>
             const controlPanelTrend = @json($trend);
 
+            const chartColors = () => {
+                const dark = document.documentElement.classList.contains('dark');
+                return {
+                    line: dark ? '#fbbf24' : '#b45309',
+                    fill: dark ? 'rgba(251, 191, 36, 0.14)' : 'rgba(180, 83, 9, 0.12)',
+                    tick: dark ? '#a1a1aa' : '#71717a',
+                    grid: dark ? 'rgba(63, 63, 70, 0.8)' : 'rgba(228, 228, 231, 0.9)',
+                };
+            };
+
             const initControlPanelChart = () => {
                 const ctx = document.getElementById('controlPanelTrend');
-                if (!ctx || !window.Chart) {
-                    return;
-                }
+                if (!ctx || !window.Chart) return;
 
                 if (window.controlPanelChart) {
                     window.controlPanelChart.destroy();
                 }
 
+                const colors = chartColors();
                 window.controlPanelChart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: controlPanelTrend.labels || [],
                         datasets: [{
-                            label: 'Vendas (R$)',
+                            label: 'Recebido (R$)',
                             data: controlPanelTrend.values || [],
-                            borderColor: '#2563eb',
-                            backgroundColor: 'rgba(37, 99, 235, 0.18)',
+                            borderColor: colors.line,
+                            backgroundColor: colors.fill,
                             fill: true,
-                            tension: 0.35,
+                            tension: 0.3,
                             pointRadius: 3,
+                            pointHoverRadius: 4,
+                            borderWidth: 2,
                         }],
                     },
                     options: {
@@ -606,13 +503,21 @@
                             legend: { display: false },
                             tooltip: {
                                 callbacks: {
-                                    label: (ctx) => ` R$ ${Number(ctx.raw || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                                    label: (item) => ` R$ ${Number(item.raw || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
                                 },
                             },
                         },
                         scales: {
-                            x: { grid: { display: false }, ticks: { color: '#64748b' } },
-                            y: { grid: { color: 'rgba(15, 23, 42, 0.08)' }, ticks: { color: '#64748b' } },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: colors.tick, maxRotation: 0 },
+                                border: { display: false },
+                            },
+                            y: {
+                                grid: { color: colors.grid },
+                                ticks: { color: colors.tick },
+                                border: { display: false },
+                            },
                         },
                     },
                 });
@@ -623,4 +528,3 @@
         </script>
     @endonce
 </x-filament-panels::page>
-
