@@ -4,10 +4,14 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\Products\ProductWriteService;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Popula categorias e pelo menos 30 produtos de varejo realistas.
@@ -19,7 +23,7 @@ class DemoCatalogSeeder extends Seeder
 {
     public function run(): void
     {
-        Gate::before(fn () => true);
+        $this->authenticateForWrite();
 
         $categories = collect([
             ['name' => 'Bebidas', 'slug' => 'bebidas'],
@@ -110,5 +114,27 @@ class DemoCatalogSeeder extends Seeder
         }
 
         $this->command?->info("DemoCatalogSeeder: {$created} produtos criados (pulados os que já existiam).");
+    }
+
+    private function authenticateForWrite(): void
+    {
+        // ProductWriteService e StockService exigem Gate; no console não há sessão.
+        Gate::before(function (?User $user, string $ability) {
+            return true;
+        });
+
+        $needed = ['create-products', 'edit-products', 'create-stock-movements'];
+        foreach ($needed as $name) {
+            Permission::findOrCreate($name, 'web');
+        }
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $user = User::query()->orderBy('id')->first();
+        if (! $user) {
+            throw new \RuntimeException('DemoCatalogSeeder precisa de ao menos um usuário no banco (ex.: admin).');
+        }
+
+        $user->givePermissionTo($needed);
+        Auth::login($user);
     }
 }
