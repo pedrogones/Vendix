@@ -12,7 +12,10 @@ use App\Models\User;
 use App\Services\Cart\CartService;
 use App\Services\Chatbot\ProductRuleService;
 use App\Services\Products\ProductWriteService;
+use App\Services\Reports\SalesReportService;
 use App\Services\Sales\ChatbotCheckoutService;
+use App\Services\Sales\ConfirmSaleWithPaymentService;
+use App\Services\Sales\RecordSalePaymentService;
 use App\Services\Sales\SaleItemService;
 use App\Services\Stocks\CancelSaleService;
 use App\Services\Stocks\ConfirmSaleService;
@@ -225,6 +228,7 @@ class SalesStockIntegrityTest extends TestCase
         $this->assertSame(8, (int) $product->fresh()->stock);
         $this->assertDatabaseHas('stock_movements', ['reason' => 'sale', 'quantity' => 2, 'reference_id' => $order['sale_id']]);
         $this->assertDatabaseHas('sale_items', ['sale_id' => $order['sale_id'], 'unit_price' => 8, 'discount' => 0, 'total_price' => 16]);
+        $this->assertDatabaseHas('sales', ['id' => $order['sale_id'], 'status' => 'confirmed', 'payment_status' => Sale::PAYMENT_UNPAID]);
         $this->assertSame($order, app(ChatbotCheckoutService::class)->finalize('test-session'));
         // Simulate a process failure after commit, before cache completion.
         Cache::put('chatbot:cart:test-session', $cart, 60);
@@ -390,8 +394,13 @@ class SalesStockIntegrityTest extends TestCase
         $screen->call('removeItem', $sale->items()->firstOrFail()->id);
         $this->assertSame('0.00', $sale->fresh()->total);
         $screen->fillForm(['product_id' => $product->id, 'quantity' => 2, 'discount' => 0], 'saleForm')
-            ->call('addItem')->call('confirmSale')->assertHasNoErrors();
+            ->call('addItem')
+            ->set('paymentLines', [
+                ['method' => 'cash', 'amount' => 20, 'amount_tendered' => 20],
+            ])
+            ->call('confirmSale')->assertHasNoErrors();
         $this->assertSame('confirmed', $sale->fresh()->status);
+        $this->assertSame(Sale::PAYMENT_PAID, $sale->fresh()->payment_status);
         $this->assertSame(8, (int) $product->fresh()->stock);
     }
 
@@ -488,5 +497,75 @@ class SalesStockIntegrityTest extends TestCase
         $this->assertTrue($product->is_active);
         $sale = $this->sale($product);
         $this->assertSame('20.00', $sale->total);
+    }
+
+    public function test_confirm_with_payment_records_cash_change_and_marks_paid(): void
+    {
+        $product = $this->product();
+        $sale = $this->sale($product);
+        app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
+            ['method' => 'cash', 'amount' => 20, 'amount_tendered' => 50],
+        ]);
+        $sale->refresh()->load('payments');
+        $this->assertSame(Sale::PAYMENT_PAID, $sale->payment_status);
+        $this->assertSame(8, (int) $product->fresh()->stock);
+        $this->assertDatabaseHas('sale_payments', [
+            'sale_id' => $sale->id,
+            'type' => 'payment',
+            'method' => 'cash',
+            'amount' => 20,
+            'amount_tendered' => 50,
+            'change_amount' => 30,
+        ]);
+    }
+
+    public function test_split_payment_must_equal_total_and_rejects_shortfall(): void
+    {
+        $product = $this->product();
+        $sale = $this->sale($product);
+        $this->rejects(fn () => app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
+            ['method' => 'pix', 'amount' => 10],
+        ]));
+        $this->assertSame('draft', $sale->fresh()->status);
+        $this->assertSame(10, (int) $product->fresh()->stock);
+
+        app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
+            ['method' => 'pix', 'amount' => 12],
+            ['method' => 'card', 'amount' => 8],
+        ]);
+        $this->assertSame(Sale::PAYMENT_PAID, $sale->fresh()->payment_status);
+        $this->assertSame(2, $sale->payments()->where('type', 'payment')->count());
+    }
+
+    public function test_cancel_paid_sale_refunds_and_returns_stock(): void
+    {
+        $product = $this->product();
+        $sale = $this->sale($product);
+        app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
+            ['method' => 'pix', 'amount' => 20],
+        ]);
+        app(CancelSaleService::class)->cancel($sale, 'Cliente desistiu');
+        $sale->refresh();
+        $this->assertSame('canceled', $sale->status);
+        $this->assertSame(Sale::PAYMENT_REFUNDED, $sale->payment_status);
+        $this->assertSame(10, (int) $product->fresh()->stock);
+        $this->assertDatabaseHas('sale_payments', ['sale_id' => $sale->id, 'type' => 'refund', 'method' => 'pix', 'amount' => 20]);
+        $this->rejects(fn () => app(CancelSaleService::class)->cancel($sale, 'Repetição'));
+    }
+
+    public function test_recording_payment_twice_is_rejected_and_unpaid_is_excluded_from_revenue(): void
+    {
+        $product = $this->product();
+        $paid = $this->sale($product);
+        app(ConfirmSaleWithPaymentService::class)->confirm($paid, [['method' => 'other', 'amount' => 20]]);
+        $this->rejects(fn () => app(RecordSalePaymentService::class)->record($paid, [['method' => 'pix', 'amount' => 20]]));
+
+        $unpaid = $this->sale($this->product());
+        app(ConfirmSaleService::class)->confirm($unpaid);
+        $this->assertSame(Sale::PAYMENT_UNPAID, $unpaid->fresh()->payment_status);
+
+        $report = app(SalesReportService::class)->build(['status' => 'confirmed', 'payment_status' => Sale::PAYMENT_PAID], 50);
+        $this->assertSame(1, $report['totals']['sales']);
+        $this->assertSame(20.0, $report['totals']['revenue']);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Services\Stocks;
 
 use App\Models\Product;
 use App\Models\Sale;
+use App\Services\Sales\RecordSalePaymentService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -20,6 +21,12 @@ class CancelSaleService
             if ($locked->status !== 'confirmed') {
                 throw new \DomainException('Apenas vendas confirmadas podem ser canceladas.');
             }
+            if ($locked->payment_status === Sale::PAYMENT_REFUNDED) {
+                throw new \DomainException('Esta venda já foi estornada.');
+            }
+            if ($locked->payment_status === Sale::PAYMENT_PAID) {
+                app(RecordSalePaymentService::class)->refundAll($locked);
+            }
             foreach ($locked->items()->orderBy('product_id')->orderBy('id')->get() as $item) {
                 $product = Product::query()->lockForUpdate()->find($item->product_id);
                 if (! $product) {
@@ -27,6 +34,7 @@ class CancelSaleService
                 }
                 app(StockService::class)->in($product, (int) $item->quantity, 'return', $locked, mb_substr('Cancelamento: '.$reason, 0, 255));
             }
+            $locked->refresh();
             $locked->transitionTo('canceled', [
                 'cancellation_reason' => $reason,
                 'canceled_by' => auth()->id(),

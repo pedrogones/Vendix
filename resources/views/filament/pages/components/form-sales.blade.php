@@ -101,6 +101,74 @@
                     <span>Total<span class="pdv-mobile-count"> · {{ $itemsCount }} un.</span></span>
                     <strong>R$ {{ number_format($sale?->total ?? 0, 2, ',', '.') }}</strong>
                 </div>
+
+                <div class="pdv-payments" wire:key="pdv-payments">
+                    <header class="pdv-payments-heading">
+                        <h3>Recebimento</h3>
+                        <button type="button" class="pdv-payment-add" wire:click="addPaymentLine" @disabled($saleItems->isEmpty())>
+                            Dividir
+                        </button>
+                    </header>
+                    @foreach ($this->paymentLines as $index => $line)
+                        <div class="pdv-payment-line" wire:key="payment-line-{{ $index }}">
+                            <label class="pdv-payment-field">
+                                <span>Meio</span>
+                                <select wire:model.live="paymentLines.{{ $index }}.method">
+                                    @foreach ($this->paymentMethods as $value => $label)
+                                        <option value="{{ $value }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+                            <label class="pdv-payment-field">
+                                <span>Valor</span>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    inputmode="decimal"
+                                    wire:model.live="paymentLines.{{ $index }}.amount"
+                                    placeholder="0,00"
+                                >
+                            </label>
+                            @if (($line['method'] ?? '') === 'cash')
+                                <label class="pdv-payment-field">
+                                    <span>Recebido</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        inputmode="decimal"
+                                        wire:model.live="paymentLines.{{ $index }}.amount_tendered"
+                                        placeholder="0,00"
+                                    >
+                                </label>
+                            @endif
+                            @if (count($this->paymentLines) > 1)
+                                <button
+                                    type="button"
+                                    class="pdv-payment-remove"
+                                    wire:click="removePaymentLine({{ $index }})"
+                                    aria-label="Remover forma de pagamento"
+                                >
+                                    ×
+                                </button>
+                            @endif
+                        </div>
+                    @endforeach
+                    <dl class="pdv-payment-summary">
+                        <div>
+                            <dt>Alocado</dt>
+                            <dd>R$ {{ number_format($this->paymentAllocated, 2, ',', '.') }}</dd>
+                        </div>
+                        @if ($this->paymentChange > 0)
+                            <div>
+                                <dt>Troco</dt>
+                                <dd>R$ {{ number_format($this->paymentChange, 2, ',', '.') }}</dd>
+                            </div>
+                        @endif
+                    </dl>
+                </div>
+
                 <x-filament::button
                     wire:click="confirmSale"
                     wire:loading.attr="disabled"
@@ -109,10 +177,10 @@
                     icon="heroicon-m-check"
                     class="pdv-confirm-button"
                 >
-                    <span wire:loading.remove wire:target="confirmSale">Confirmar venda</span>
+                    <span wire:loading.remove wire:target="confirmSale">Confirmar e receber</span>
                     <span wire:loading wire:target="confirmSale">Confirmando…</span>
                 </x-filament::button>
-                <p class="pdv-confirm-note">A confirmação registra a venda e baixa o estoque.</p>
+                <p class="pdv-confirm-note">Registra a venda, o recebimento e a baixa de estoque.</p>
             </div>
         </aside>
     </div>

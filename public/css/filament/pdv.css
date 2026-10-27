@@ -353,6 +353,114 @@
     margin: 12px 0 0;
 }
 
+.pdv-payments {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--pdv-border);
+    display: grid;
+    gap: 12px;
+}
+
+.pdv-payments-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.pdv-payments-heading h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.pdv-payment-add {
+    border: 0;
+    background: transparent;
+    color: var(--pdv-accent);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+
+.pdv-payment-add:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.pdv-payment-line {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    padding: 10px;
+    border: 1px solid var(--pdv-border);
+    border-radius: 8px;
+    background: var(--pdv-subtle);
+}
+
+.pdv-payment-field {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.pdv-payment-field span {
+    color: var(--pdv-muted);
+    font-size: 11px;
+}
+
+.pdv-payment-field select,
+.pdv-payment-field input {
+    width: 100%;
+    min-height: 36px;
+    border: 1px solid var(--pdv-border);
+    border-radius: 6px;
+    background: var(--pdv-surface);
+    color: var(--pdv-text);
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 8px;
+}
+
+.pdv-payment-remove {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    border: 0;
+    background: transparent;
+    color: var(--pdv-muted);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+}
+
+.pdv-payment-summary {
+    margin: 0;
+    display: grid;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.pdv-payment-summary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.pdv-payment-summary dt {
+    color: var(--pdv-muted);
+}
+
+.pdv-payment-summary dd {
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
 .pdv-sr-only {
     position: absolute;
     width: 1px;

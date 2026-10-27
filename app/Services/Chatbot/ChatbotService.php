@@ -359,7 +359,7 @@ class ChatbotService
                 return $this->buildResponse(
                     'order_confirmed',
                     sprintf(
-                        'Pedido confirmado com sucesso! Numero do pedido: %s. Total: %s.',
+                        'Pedido confirmado com sucesso! Numero do pedido: %s. Total: %s. O pagamento ainda sera confirmado no atendimento da loja.',
                         $order['order_number'],
                         $this->productRules->formatCurrency((float) $order['total'])
                     ),

@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Client;
+use App\Models\Sale;
 use App\Models\User;
 use App\Services\Reports\SalesReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -35,6 +36,7 @@ class SalesReport extends Page implements HasForms
         'start_date' => null,
         'end_date' => null,
         'status' => 'confirmed',
+        'payment_status' => Sale::PAYMENT_PAID,
         'user_id' => null,
         'client_id' => null,
         'min_total' => null,
@@ -71,6 +73,11 @@ class SalesReport extends Page implements HasForms
                 Select::make('status')
                     ->label('Status')
                     ->options(SalesReportService::STATUS_LABELS)
+                    ->placeholder('Todos')
+                    ->nullable(),
+                Select::make('payment_status')
+                    ->label('Pagamento')
+                    ->options(SalesReportService::PAYMENT_STATUS_LABELS)
                     ->placeholder('Todos')
                     ->nullable(),
                 Select::make('user_id')
@@ -121,6 +128,7 @@ class SalesReport extends Page implements HasForms
             'start_date' => null,
             'end_date' => null,
             'status' => 'confirmed',
+            'payment_status' => Sale::PAYMENT_PAID,
             'user_id' => null,
             'client_id' => null,
             'min_total' => null,

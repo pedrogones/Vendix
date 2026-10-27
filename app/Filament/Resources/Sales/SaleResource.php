@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Sales;
 use App\Filament\Resources\BaseAclResource;
 use App\Filament\Resources\Sales\Pages\ManageSales;
 use App\Models\Sale;
+use App\Models\SalePayment;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -89,6 +90,31 @@ class SaleResource extends BaseAclResource
                         'canceled' => 'Cancelada',
                         default => $state,
                     }),
+
+                TextEntry::make('payment_status')
+                    ->label('Pagamento')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => Sale::PAYMENT_STATUS_LABELS[$state] ?? (string) $state),
+
+                TextEntry::make('payments_summary')
+                    ->label('Recebimentos')
+                    ->state(function (Sale $record): string {
+                        $record->loadMissing('payments');
+                        if ($record->payments->isEmpty()) {
+                            return '—';
+                        }
+
+                        return $record->payments
+                            ->map(function ($payment): string {
+                                $method = SalePayment::METHOD_LABELS[$payment->method] ?? $payment->method;
+                                $type = $payment->type === 'refund' ? 'Estorno' : 'Pagamento';
+                                $amount = 'R$ '.number_format((float) $payment->amount, 2, ',', '.');
+
+                                return "{$type} · {$method} · {$amount}";
+                            })
+                            ->implode("\n");
+                    })
+                    ->html(false),
             ]);
     }
 
@@ -122,6 +148,15 @@ class SaleResource extends BaseAclResource
                         'warning' => 'draft',
                         'success' => 'confirmed',
                         'danger' => 'canceled',
+                    ]),
+                TextColumn::make('payment_status')
+                    ->label('Pagamento')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => Sale::PAYMENT_STATUS_LABELS[$state] ?? (string) $state)
+                    ->colors([
+                        'warning' => Sale::PAYMENT_UNPAID,
+                        'success' => Sale::PAYMENT_PAID,
+                        'danger' => Sale::PAYMENT_REFUNDED,
                     ]),
 
             ])

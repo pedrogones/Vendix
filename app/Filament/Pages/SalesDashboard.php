@@ -40,7 +40,9 @@ class SalesDashboard extends Page
 
     private function buildDashboard(): array
     {
-        $confirmedSales = Sale::query()->where('status', 'confirmed');
+        $confirmedSales = Sale::query()
+            ->where('status', 'confirmed')
+            ->where('payment_status', Sale::PAYMENT_PAID);
 
         $totalSales = $confirmedSales->count();
         $totalRevenue = (float) $confirmedSales->sum('total');
@@ -128,6 +130,7 @@ class SalesDashboard extends Page
         $sales = Sale::query()
             ->selectRaw('DATE(created_at) as date, SUM(total) as total')
             ->where('status', 'confirmed')
+            ->where('payment_status', Sale::PAYMENT_PAID)
             ->whereBetween('created_at', [$start, $end])
             ->groupBy('date')
             ->orderBy('date')
@@ -151,7 +154,7 @@ class SalesDashboard extends Page
     {
         $rows = SaleItem::query()
             ->select('product_id', DB::raw('SUM(quantity) as qty'))
-            ->whereHas('sale', fn ($query) => $query->where('status', 'confirmed'))
+            ->whereHas('sale', fn ($query) => $query->where('status', 'confirmed')->where('payment_status', Sale::PAYMENT_PAID))
             ->groupBy('product_id')
             ->orderByDesc('qty')
             ->limit(6)
@@ -176,6 +179,7 @@ class SalesDashboard extends Page
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->where('sales.status', 'confirmed')
+            ->where('sales.payment_status', Sale::PAYMENT_PAID)
             ->groupBy('products.category_id')
             ->orderByDesc('total')
             ->get();
@@ -201,7 +205,7 @@ class SalesDashboard extends Page
     {
         $mostSoldRow = SaleItem::query()
             ->select('product_id', DB::raw('SUM(quantity) as qty'))
-            ->whereHas('sale', fn ($query) => $query->where('status', 'confirmed'))
+            ->whereHas('sale', fn ($query) => $query->where('status', 'confirmed')->where('payment_status', Sale::PAYMENT_PAID))
             ->groupBy('product_id')
             ->orderByDesc('qty')
             ->with('product:id,name')
@@ -209,7 +213,7 @@ class SalesDashboard extends Page
 
         $featuredRow = SaleItem::query()
             ->select('product_id', DB::raw('SUM(total_price) as revenue'))
-            ->whereHas('sale', fn ($query) => $query->where('status', 'confirmed'))
+            ->whereHas('sale', fn ($query) => $query->where('status', 'confirmed')->where('payment_status', Sale::PAYMENT_PAID))
             ->groupBy('product_id')
             ->orderByDesc('revenue')
             ->with('product:id,name')

@@ -16,6 +16,8 @@ class SalesReportService
         'canceled' => 'Cancelada',
     ];
 
+    public const PAYMENT_STATUS_LABELS = Sale::PAYMENT_STATUS_LABELS;
+
     public function build(array $filters, int $perPage = 15): array
     {
         $filters = $this->normalizeFilters($filters);
@@ -37,7 +39,7 @@ class SalesReportService
         $ticketMedio = $totalSales > 0 ? $totalRevenue / $totalSales : 0.0;
 
         $sales = $query
-            ->with(['client', 'user', 'items.product'])
+            ->with(['client', 'user', 'items.product', 'payments'])
             ->orderByDesc('created_at')
             ->paginate($perPage);
 
@@ -52,6 +54,7 @@ class SalesReportService
                 'ticket_medio' => $ticketMedio,
             ],
             'status_labels' => self::STATUS_LABELS,
+            'payment_status_labels' => self::PAYMENT_STATUS_LABELS,
         ];
     }
 
@@ -61,6 +64,7 @@ class SalesReportService
             'start_date' => null,
             'end_date' => null,
             'status' => 'confirmed',
+            'payment_status' => Sale::PAYMENT_PAID,
             'user_id' => null,
             'client_id' => null,
             'min_total' => null,
@@ -72,6 +76,7 @@ class SalesReportService
         $filters['start_date'] = $this->parseDate($filters['start_date'], true);
         $filters['end_date'] = $this->parseDate($filters['end_date'], false);
         $filters['status'] = $filters['status'] ?: null;
+        $filters['payment_status'] = $filters['payment_status'] ?: null;
 
         return $filters;
     }
@@ -88,6 +93,10 @@ class SalesReportService
 
         if ($filters['status']) {
             $query->where('status', $filters['status']);
+        }
+
+        if ($filters['payment_status']) {
+            $query->where('payment_status', $filters['payment_status']);
         }
 
         if ($filters['user_id']) {

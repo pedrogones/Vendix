@@ -5,7 +5,9 @@ namespace App\Filament\Pages;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
-use App\Services\Stocks\ConfirmSaleService;
+use App\Models\SalePayment;
+use App\Services\Products\ProductPricingService;
+use App\Services\Sales\ConfirmSaleWithPaymentService;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -49,6 +51,9 @@ class StartSale extends Page implements HasForms
         'discount' => 0,
     ];
 
+    /** @var list<array{method: string, amount: float|string|null, amount_tendered: float|string|null}> */
+    public array $paymentLines = [];
+
     protected function getForms(): array
     {
         return [
@@ -60,6 +65,7 @@ class StartSale extends Page implements HasForms
     {
         $this->ensureSaleExists();
         $this->saleForm->fill($this->saleData);
+        $this->resetPaymentLines();
     }
 
     public function saleForm(Schema $schema): Schema
@@ -183,6 +189,7 @@ class StartSale extends Page implements HasForms
 
         $this->resetSaleForm();
         $this->sale->refresh()->load('items.product');
+        $this->syncPrimaryPaymentAmount();
     }
 
     public function removeItem(int $itemId): void
@@ -198,12 +205,7 @@ class StartSale extends Page implements HasForms
         }
 
         $this->sale->refresh()->load('items.product');
-    }
-
-    protected function recalculateSaleTotal(): void
-    {
-        $total = (float) $this->sale->items()->sum('total_price');
-        $this->sale->update(['total' => $total]);
+        $this->syncPrimaryPaymentAmount();
     }
 
     protected function resetSaleForm(): void
@@ -216,6 +218,52 @@ class StartSale extends Page implements HasForms
         ];
 
         $this->saleForm->fill($this->saleData);
+    }
+
+    protected function resetPaymentLines(): void
+    {
+        $total = (float) ($this->sale?->total ?? 0);
+        $this->paymentLines = [
+            [
+                'method' => 'cash',
+                'amount' => $total > 0 ? number_format($total, 2, '.', '') : '',
+                'amount_tendered' => $total > 0 ? number_format($total, 2, '.', '') : '',
+            ],
+        ];
+    }
+
+    protected function syncPrimaryPaymentAmount(): void
+    {
+        $total = (float) ($this->sale?->total ?? 0);
+        if ($this->paymentLines === []) {
+            $this->resetPaymentLines();
+
+            return;
+        }
+        if (count($this->paymentLines) === 1) {
+            $this->paymentLines[0]['amount'] = $total > 0 ? number_format($total, 2, '.', '') : '';
+            if (($this->paymentLines[0]['method'] ?? '') === 'cash' && ($this->paymentLines[0]['amount_tendered'] === '' || $this->paymentLines[0]['amount_tendered'] === null)) {
+                $this->paymentLines[0]['amount_tendered'] = $this->paymentLines[0]['amount'];
+            }
+        }
+    }
+
+    public function addPaymentLine(): void
+    {
+        $this->paymentLines[] = [
+            'method' => 'pix',
+            'amount' => '',
+            'amount_tendered' => '',
+        ];
+    }
+
+    public function removePaymentLine(int $index): void
+    {
+        if (count($this->paymentLines) <= 1) {
+            return;
+        }
+        unset($this->paymentLines[$index]);
+        $this->paymentLines = array_values($this->paymentLines);
     }
 
     public function getSelectedProductProperty(): ?Product
@@ -238,6 +286,40 @@ class StartSale extends Page implements HasForms
         return max(0, ($this->unitPrice * $qty) - $discount);
     }
 
+    public function getPaymentMethodsProperty(): array
+    {
+        return SalePayment::METHOD_LABELS;
+    }
+
+    public function getPaymentChangeProperty(): float
+    {
+        $pricing = app(ProductPricingService::class);
+        $change = 0;
+        foreach ($this->paymentLines as $line) {
+            if (($line['method'] ?? '') !== 'cash') {
+                continue;
+            }
+            $amount = $pricing->cents($line['amount'] ?? 0);
+            $tendered = $pricing->cents($line['amount_tendered'] ?? $line['amount'] ?? 0);
+            if ($tendered > $amount) {
+                $change += $tendered - $amount;
+            }
+        }
+
+        return $change / 100;
+    }
+
+    public function getPaymentAllocatedProperty(): float
+    {
+        $pricing = app(ProductPricingService::class);
+        $sum = 0;
+        foreach ($this->paymentLines as $line) {
+            $sum += $pricing->cents($line['amount'] ?? 0);
+        }
+
+        return $sum / 100;
+    }
+
     public function confirmSale(): void
     {
         if (! $this->sale) {
@@ -246,10 +328,10 @@ class StartSale extends Page implements HasForms
 
         try {
             \Illuminate\Support\Facades\Gate::authorize($this->sale->user_id === auth()->id() ? 'create-sales' : 'edit-sales');
-            app(ConfirmSaleService::class)->confirm($this->sale);
+            app(ConfirmSaleWithPaymentService::class)->confirm($this->sale, $this->paymentLines);
 
             Notification::make()
-                ->title('Venda confirmada com sucesso.')
+                ->title('Venda confirmada e recebimento registrado.')
                 ->success()
                 ->send();
 
@@ -257,6 +339,7 @@ class StartSale extends Page implements HasForms
             $this->saleData = ['cpf' => null, 'product_id' => null, 'quantity' => 1, 'discount' => 0];
             $this->saleForm->fill($this->saleData);
             $this->ensureSaleExists();
+            $this->resetPaymentLines();
         } catch (\DomainException $e) {
             Notification::make()
                 ->title($e->getMessage())

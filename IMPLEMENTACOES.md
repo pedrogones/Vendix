@@ -4,7 +4,7 @@ Documento de trabalho para organizar a evolução do produto. Tom informal, mas 
 
 Base: diagnóstico do repositório em 21/10/2026, atualizado após a implementação da primeira etapa de vendas/estoque. Houve testes automatizados de serviços e ações do painel em ambiente isolado e testes de concorrência no MySQL descartável; não houve acesso ao banco da operação.
 
-Status: primeira etapa de vendas/estoque implementada no checkout. Itens concluídos estão marcados; os demais continuam no backlog. Aplicação da migration e das permissões na instalação de uso está descrita em `docs/VALIDACAO-VENDAS-ESTOQUE.md`.
+Status: etapa de vendas/estoque implementada; fatia 1 de recebimento (registro manual no PDV, estorno no cancelamento, receita só conta pago) implementada em 26/10/2026. Itens concluídos estão marcados; os demais continuam no backlog. Migrations/permissões: `docs/VALIDACAO-VENDAS-ESTOQUE.md` e `docs/VALIDACAO-RECEBIMENTO.md`.
 
 ## 1. Onde estamos hoje
 
@@ -33,7 +33,7 @@ Essa separação é de propósito e navegação. Não exige criar três aplicaç
 - [ ] Definir o público inicial do Vendix e a principal operação que queremos resolver.
 - [ ] Revisar textos e navegação para distinguir “quero usar o Vendix” de “quero comprar desta loja”.
 - [ ] Definir o destino de cada cadastro: comerciante/equipe ou consumidor. Criar os fluxos correspondentes.
-- [ ] Retirar promessas comerciais de funcionalidades ausentes ou apresentá-las claramente como futuras.
+- [x] Retirar promessas comerciais de funcionalidades ausentes ou apresentá-las claramente como futuras. Landing do portal alinhada aos recursos reais (26/10/2026).
 - [ ] Definir o papel de `/vendix-preview`: demonstração com dados próprios ou catálogo real de uma loja. A rota atual não deve ficar ambígua.
 - [ ] Evitar exposição de dados reais de operação caso a página seja usada como demonstração.
 - [ ] Decidir se catálogo público entra no produto inicial. Até lá, não ampliar a vitrine como se fosse prioridade estabelecida.
@@ -70,12 +70,14 @@ Entrega e validação desta etapa: `docs/VALIDACAO-VENDAS-ESTOQUE.md`. Saldos hi
 
 ## 4. Prioridade 1 — completar a venda e o recebimento
 
-- [ ] Separar situação do pedido, situação do pagamento e situação da entrega. Definir o que cada transição faz com o estoque.
-- [ ] Implementar registro de recebimentos: dinheiro, Pix, cartão e outros meios definidos para o público inicial.
-- [ ] Tratar valor recebido, troco, pagamentos parciais ou divididos conforme o escopo escolhido.
+Entrega da fatia 1 (recebimento manual): `docs/VALIDACAO-RECEBIMENTO.md`. Entrega e status de pagamento ficam para etapas seguintes; abertura/fechamento de caixa também.
+
+- [x] Separar situação da venda (estoque) da situação do pagamento (`payment_status`). Entrega ainda não modelada.
+- [x] Implementar registro de recebimentos: dinheiro, Pix, cartão e outros (manual, sem gateway).
+- [x] Tratar valor recebido e troco em dinheiro; permitir dividir meios desde que a soma cubra 100% do total. Pagamento parcial fica para depois.
 - [ ] Implementar abertura e fechamento de caixa, saldo inicial, entradas/retiradas justificadas e divergências.
 - [ ] Disponibilizar comprovante da operação, distinguindo-o de documento fiscal.
-- [ ] Integrar cancelamento ao estorno/reembolso quando aplicável.
+- [x] Integrar cancelamento ao estorno/reembolso do recebimento registrado (estorno total automático na mesma transação).
 - [ ] Implementar troca e devolução parcial, com destino do produto devolvido e efeito financeiro explícitos.
 - [ ] Unificar os caminhos de criação de venda e as regras de identificação de cliente/vendedor.
 

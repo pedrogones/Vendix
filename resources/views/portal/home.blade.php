@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ config('app.name', 'Vendix') }}</title>
     <meta name="title" content="{{ config('app.name', 'Vendix') }}" />
-    <meta name="description" content="Sistema de vendas, estoque e financeiro em um unico lugar." />
+    <meta name="description" content="Vendix: gestão de loja com ponto de venda, estoque com histórico, cadastro assistido e relatórios de vendas recebidas." />
     <meta name="application-name" content="{{ config('app.name', 'Vendix') }}" />
     <meta name="theme-color" content="#5b3df5" />
     <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Vendix') }}" />
@@ -42,8 +42,14 @@
         :root {
             color-scheme: light;
         }
+        html, body {
+            overflow-x: hidden;
+        }
         body {
             font-family: 'Manrope', sans-serif;
+        }
+        #portal-mobile-nav[hidden] {
+            display: none !important;
         }
         .animate-fade-up {
             animation: fadeUp 0.8s ease both;
@@ -69,8 +75,29 @@
     @include('portal.components.features')
     @include('portal.components.segments')
     @include('portal.components.pricing')
-    @include('portal.components.cta')
     @include('portal.components.faq')
+    @include('portal.components.cta')
     @include('portal.components.footer')
+    <script>
+        (() => {
+            const toggle = document.getElementById('portal-menu-toggle');
+            const nav = document.getElementById('portal-mobile-nav');
+            const openIcon = document.getElementById('portal-menu-icon-open');
+            const closeIcon = document.getElementById('portal-menu-icon-close');
+            if (!toggle || !nav) return;
+
+            const setOpen = (open) => {
+                nav.hidden = !open;
+                nav.classList.toggle('hidden', !open);
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+                openIcon?.classList.toggle('hidden', open);
+                closeIcon?.classList.toggle('hidden', !open);
+            };
+
+            toggle.addEventListener('click', () => setOpen(nav.hidden));
+            nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+        })();
+    </script>
 </body>
 </html>
