@@ -4,7 +4,6 @@ namespace App\Filament\Pages;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\ProductFavorite;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Filament\Pages\Page;
