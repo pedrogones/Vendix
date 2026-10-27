@@ -44,8 +44,8 @@ class SalesDashboard extends Page
             ->where('status', 'confirmed')
             ->where('payment_status', Sale::PAYMENT_PAID);
 
-        $totalSales = $confirmedSales->count();
-        $totalRevenue = (float) $confirmedSales->sum('total');
+        $totalSales = (clone $confirmedSales)->count();
+        $totalRevenue = (float) (clone $confirmedSales)->sum('total');
         $ticketMedio = $totalSales > 0 ? $totalRevenue / $totalSales : 0.0;
         $productsTotal = Product::query()->count();
 
@@ -81,9 +81,6 @@ class SalesDashboard extends Page
             ])
             ->all();
 
-        $productInsights = $this->productInsights();
-        $favorites = $this->favoriteProducts();
-
         return [
             'meta' => [
                 'updated_at' => Carbon::now()->format('d/m/Y H:i'),
@@ -111,13 +108,10 @@ class SalesDashboard extends Page
                     'values' => [$highStockCount, $lowStockCount],
                 ],
             ],
-            'products' => $productInsights,
+            'products' => $this->productInsights(),
             'stock' => [
                 'low' => $lowStockList,
                 'high' => $highStockList,
-            ],
-            'favorites' => [
-                'top' => $favorites,
             ],
         ];
     }
@@ -242,19 +236,4 @@ class SalesDashboard extends Page
         ];
     }
 
-    private function favoriteProducts(): array
-    {
-        return ProductFavorite::query()
-            ->select('product_id', DB::raw('COUNT(*) as total'))
-            ->groupBy('product_id')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->with('product:id,name')
-            ->get()
-            ->map(fn (ProductFavorite $favorite) => [
-                'name' => $favorite->product?->name ?? ('Produto #' . $favorite->product_id),
-                'count' => (int) $favorite->total,
-            ])
-            ->all();
-    }
 }

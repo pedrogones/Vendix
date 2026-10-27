@@ -1,560 +1,427 @@
 <x-filament-panels::page>
     @php
         $data = $dashboard ?? [];
+        $kpis = $data['kpis'] ?? [];
+        $charts = $data['charts'] ?? [];
+        $products = $data['products'] ?? [];
+        $stock = $data['stock'] ?? [];
+        $hasCategoryData = collect($charts['categories']['values'] ?? [])->sum() > 0;
+        $hasTopProducts = collect($charts['top_products']['values'] ?? [])->sum() > 0;
+        $hasSalesTrend = collect($charts['sales']['values'] ?? [])->sum() > 0;
     @endphp
 
     @once
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <style>
-            .sales-dashboard {
-                --bg: #f5f7fb;
-                --card: #ffffff;
-                --text: #0f172a;
-                --muted: #6b7280;
-                --border: rgba(15, 23, 42, 0.08);
-                --accent: #2563eb;
-                --accent-2: #10b981;
-                --accent-3: #06b6d4;
-                --warning: #f59e0b;
-                --danger: #ef4444;
-                --glow-1: rgba(37, 99, 235, 0.12);
-                --glow-2: rgba(16, 185, 129, 0.12);
-                --glow-3: rgba(6, 182, 212, 0.12);
-                --pill-bg: rgba(255, 255, 255, 0.8);
-                --surface-2: rgba(15, 23, 42, 0.04);
-                --surface-3: rgba(37, 99, 235, 0.06);
-                --surface-4: rgba(37, 99, 235, 0.2);
-                --accent-soft: rgba(37, 99, 235, 0.1);
-                --accent-2-soft: rgba(16, 185, 129, 0.12);
-                --accent-3-soft: rgba(6, 182, 212, 0.12);
-                --warning-soft: rgba(245, 158, 11, 0.12);
-                --danger-soft: rgba(239, 68, 68, 0.12);
-                --shadow-1: 0 12px 24px rgba(15, 23, 42, 0.08);
-                --shadow-2: 0 10px 24px rgba(15, 23, 42, 0.08);
-                --shadow-3: 0 10px 20px rgba(15, 23, 42, 0.06);
-                --chart-text: #0f172a;
-                --chart-grid: rgba(15, 23, 42, 0.08);
-                --chart-muted: #94a3b8;
-                --chart-blue-fill: rgba(37, 99, 235, 0.15);
-                --chart-green-fill: rgba(16, 185, 129, 0.7);
-                --chart-danger-fill: rgba(239, 68, 68, 0.6);
-                font-family: "Sora", sans-serif;
-                color: var(--text);
+            .sd {
+                --sd-surface: #ffffff;
+                --sd-subtle: #f4f4f5;
+                --sd-border: #e4e4e7;
+                --sd-text: #18181b;
+                --sd-muted: #71717a;
+                --sd-accent: #b45309;
+                --sd-accent-soft: #fff7ed;
+                --sd-danger: #b91c1c;
+                --sd-danger-soft: #fef2f2;
+                color: var(--sd-text);
+                font-size: 14px;
+                min-width: 0;
             }
 
-            :root.dark .sales-dashboard {
-                --bg: #0b1020;
-                --card: #0f172a;
-                --text: #e2e8f0;
-                --muted: #94a3b8;
-                --border: rgba(148, 163, 184, 0.16);
-                --accent: #60a5fa;
-                --accent-2: #34d399;
-                --accent-3: #22d3ee;
-                --warning: #fbbf24;
-                --danger: #f87171;
-                --glow-1: rgba(96, 165, 250, 0.22);
-                --glow-2: rgba(52, 211, 153, 0.18);
-                --glow-3: rgba(34, 211, 238, 0.18);
-                --pill-bg: rgba(15, 23, 42, 0.75);
-                --surface-2: rgba(148, 163, 184, 0.12);
-                --surface-3: rgba(96, 165, 250, 0.14);
-                --surface-4: rgba(96, 165, 250, 0.28);
-                --accent-soft: rgba(96, 165, 250, 0.22);
-                --accent-2-soft: rgba(52, 211, 153, 0.2);
-                --accent-3-soft: rgba(34, 211, 238, 0.2);
-                --warning-soft: rgba(251, 191, 36, 0.18);
-                --danger-soft: rgba(248, 113, 113, 0.18);
-                --shadow-1: 0 12px 30px rgba(2, 6, 23, 0.6);
-                --shadow-2: 0 10px 28px rgba(2, 6, 23, 0.55);
-                --shadow-3: 0 10px 22px rgba(2, 6, 23, 0.5);
-                --chart-text: #e2e8f0;
-                --chart-grid: rgba(148, 163, 184, 0.25);
-                --chart-muted: rgba(148, 163, 184, 0.7);
-                --chart-blue-fill: rgba(96, 165, 250, 0.25);
-                --chart-green-fill: rgba(52, 211, 153, 0.7);
-                --chart-danger-fill: rgba(248, 113, 113, 0.65);
+            .dark .sd {
+                --sd-surface: #18181b;
+                --sd-subtle: #27272a;
+                --sd-border: #3f3f46;
+                --sd-text: #fafafa;
+                --sd-muted: #a1a1aa;
+                --sd-accent: #fbbf24;
+                --sd-accent-soft: rgba(251, 191, 36, 0.12);
+                --sd-danger: #f87171;
+                --sd-danger-soft: rgba(248, 113, 113, 0.12);
             }
 
-            .sales-dashboard * {
-                box-sizing: border-box;
-            }
+            .sd *, .sd *::before, .sd *::after { box-sizing: border-box; }
 
-            .sales-shell {
-                background:
-                    radial-gradient(900px 400px at 10% -10%, var(--glow-1), transparent 55%),
-                    radial-gradient(800px 400px at 90% 0%, var(--glow-2), transparent 50%),
-                    radial-gradient(600px 400px at 70% 90%, var(--glow-3), transparent 50%),
-                    var(--bg);
-                border: 1px solid var(--border);
-                border-radius: 24px;
-                padding: 24px;
-            }
-
-            .dash-header {
+            .sd-head {
                 display: flex;
                 flex-wrap: wrap;
                 align-items: flex-end;
                 justify-content: space-between;
-                gap: 16px;
-                margin-bottom: 24px;
+                gap: 12px;
+                margin-bottom: 20px;
             }
 
-            .dash-title {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .dash-title .eyebrow {
-                font-size: 12px;
-                letter-spacing: 0.18em;
-                text-transform: uppercase;
-                color: var(--accent);
-                font-weight: 600;
-            }
-
-            .dash-title h1 {
-                font-family: "Newsreader", serif;
-                font-weight: 600;
-                font-size: clamp(26px, 3vw, 34px);
+            .sd-head h1 {
                 margin: 0;
+                font-size: clamp(1.35rem, 3vw, 1.75rem);
+                font-weight: 650;
+                letter-spacing: -0.02em;
+                line-height: 1.2;
             }
 
-            .dash-title p {
-                margin: 0;
-                color: var(--muted);
-                max-width: 520px;
-                font-size: 14px;
-                line-height: 1.6;
+            .sd-head p {
+                margin: 6px 0 0;
+                color: var(--sd-muted);
+                font-size: 0.9rem;
+                max-width: 38rem;
+                line-height: 1.5;
             }
 
-            .dash-meta {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
+            .sd-updated {
+                color: var(--sd-muted);
+                font-size: 0.75rem;
+                white-space: nowrap;
             }
 
-            .pill {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 8px 14px;
-                border-radius: 999px;
-                background: var(--pill-bg);
-                border: 1px solid var(--border);
-                font-size: 12px;
-                color: var(--muted);
-                font-weight: 500;
-                backdrop-filter: blur(6px);
-            }
-
-            .pill span {
-                width: 8px;
-                height: 8px;
-                border-radius: 999px;
-                background: var(--accent-2);
-            }
-
-            .kpi-grid {
+            .sd-kpis {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 16px;
-                margin-bottom: 24px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                margin-bottom: 16px;
             }
 
-            .kpi-card {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 18px;
-                padding: 18px;
-                box-shadow: var(--shadow-1);
-                position: relative;
-                overflow: hidden;
-                animation: rise 0.6s ease both;
+            @media (min-width: 900px) {
+                .sd-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             }
 
-            .kpi-card::after {
-                content: "";
-                position: absolute;
-                inset: auto -30% -60% auto;
-                width: 120px;
-                height: 120px;
-                border-radius: 50%;
-                background: var(--accent-soft);
+            .sd-kpi {
+                padding: 16px;
+                border: 1px solid var(--sd-border);
+                border-radius: 12px;
+                background: var(--sd-surface);
+                min-width: 0;
             }
 
-            .kpi-card .icon {
-                width: 42px;
-                height: 42px;
-                display: grid;
-                place-items: center;
-                border-radius: 14px;
-                background: var(--accent-soft);
-                color: var(--accent);
-                font-size: 18px;
-            }
-
-            .kpi-card .icon.accent-2 {
-                background: var(--accent-2-soft);
-                color: var(--accent-2);
-            }
-
-            .kpi-card .icon.accent-3 {
-                background: var(--accent-3-soft);
-                color: var(--accent-3);
-            }
-
-            .kpi-card .label {
-                margin-top: 12px;
-                font-size: 12px;
+            .sd-kpi .label {
+                font-size: 0.7rem;
+                font-weight: 600;
+                letter-spacing: 0.04em;
                 text-transform: uppercase;
-                letter-spacing: 0.12em;
-                color: var(--muted);
+                color: var(--sd-muted);
             }
 
-            .kpi-card .value {
+            .sd-kpi .value {
+                margin-top: 8px;
+                font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+                font-weight: 650;
+                font-variant-numeric: tabular-nums;
+                letter-spacing: -0.02em;
+                word-break: break-word;
+            }
+
+            .sd-kpi .hint {
                 margin-top: 6px;
-                font-size: 22px;
-                font-weight: 600;
-                color: var(--text);
+                font-size: 0.72rem;
+                color: var(--sd-muted);
             }
 
-            .grid-two {
+            .sd-grid {
                 display: grid;
-                gap: 16px;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                margin-bottom: 24px;
-            }
-
-            .card {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 20px;
-                padding: 18px;
-                box-shadow: var(--shadow-2);
-                animation: rise 0.6s ease both;
-            }
-
-            .card-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+                gap: 12px;
                 margin-bottom: 12px;
             }
 
-            .card-header h3 {
-                font-size: 15px;
-                margin: 0;
-                font-weight: 600;
+            @media (min-width: 960px) {
+                .sd-grid.two { grid-template-columns: 1.35fr 1fr; }
+                .sd-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             }
 
-            .card-header span {
-                font-size: 12px;
-                color: var(--muted);
-            }
-
-            .chart-wrap {
-                position: relative;
-                height: 280px;
-            }
-
-            .chart-wrap.tall {
-                height: 320px;
-            }
-
-            .product-grid {
-                display: grid;
-                gap: 16px;
-                grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-                margin-bottom: 24px;
-            }
-
-            .product-card {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: 18px;
+            .sd-card {
+                border: 1px solid var(--sd-border);
+                border-radius: 12px;
+                background: var(--sd-surface);
                 padding: 16px;
-                box-shadow: var(--shadow-3);
-                position: relative;
+                min-width: 0;
             }
 
-            .product-card .badge {
-                position: absolute;
-                top: 14px;
-                right: 14px;
-                padding: 4px 10px;
-                border-radius: 999px;
-                background: var(--accent-2-soft);
-                color: var(--accent-2);
-                font-size: 11px;
-                font-weight: 600;
+            .sd-card-head {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 14px;
             }
 
-            .product-card h4 {
-                margin: 10px 0 4px;
-                font-size: 15px;
-                font-weight: 600;
-            }
-
-            .product-card p {
+            .sd-card-head h2 {
                 margin: 0;
-                color: var(--muted);
-                font-size: 13px;
+                font-size: 0.95rem;
+                font-weight: 650;
             }
 
-            .stacked-grid {
+            .sd-card-head span {
+                font-size: 0.72rem;
+                color: var(--sd-muted);
+            }
+
+            .sd-chart {
+                position: relative;
+                height: 220px;
+            }
+
+            .sd-chart.is-tall { height: 260px; }
+
+            .sd-empty {
                 display: grid;
-                gap: 16px;
-                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-                margin-bottom: 24px;
+                place-items: center;
+                min-height: 180px;
+                padding: 20px;
+                text-align: center;
+                color: var(--sd-muted);
+                font-size: 0.85rem;
+                line-height: 1.5;
+                border-radius: 10px;
+                background: var(--sd-subtle);
             }
 
-            .list {
+            .sd-list {
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
             }
 
-            .list-item {
+            .sd-row {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                background: var(--surface-2);
-                border-radius: 12px;
-                padding: 10px 12px;
-                font-size: 13px;
-            }
-
-            .list-item strong {
-                font-weight: 600;
-            }
-
-            .list-item.low {
-                border-left: 4px solid var(--danger);
-            }
-
-            .list-item.high {
-                border-left: 4px solid var(--accent-2);
-            }
-
-            .favorites {
-                display: grid;
                 gap: 12px;
-            }
-
-            .favorite-row {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
                 padding: 10px 12px;
-                border-radius: 14px;
-                background: var(--surface-3);
+                border-radius: 10px;
+                background: var(--sd-subtle);
+                min-width: 0;
             }
 
-            .favorite-row span {
-                font-size: 13px;
+            .sd-row .meta {
+                min-width: 0;
+            }
+
+            .sd-row .meta strong {
+                display: block;
+                font-size: 0.85rem;
                 font-weight: 600;
-            }
-
-            .favorite-bar {
-                height: 6px;
-                border-radius: 999px;
-                background: var(--surface-4);
                 overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
-            .favorites .text-gray-500 {
-                color: var(--muted);
+            .sd-row .meta span {
+                display: block;
+                margin-top: 2px;
+                font-size: 0.72rem;
+                color: var(--sd-muted);
             }
 
-            .favorite-bar div {
-                height: 100%;
-                background: var(--accent);
+            .sd-row .amount {
+                font-size: 0.85rem;
+                font-weight: 650;
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+
+            .sd-pill {
+                display: inline-flex;
+                align-items: center;
+                padding: 3px 8px;
                 border-radius: 999px;
-                width: 0;
-                transition: width 0.8s ease;
+                font-size: 0.72rem;
+                font-weight: 650;
+                font-variant-numeric: tabular-nums;
+                background: var(--sd-danger-soft);
+                color: var(--sd-danger);
             }
 
-            @keyframes rise {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
+            .sd-pill.is-ok {
+                background: var(--sd-accent-soft);
+                color: var(--sd-accent);
             }
 
-            @media (max-width: 768px) {
-                .sales-shell {
-                    padding: 16px;
-                }
+            .sd-insight {
+                display: grid;
+                gap: 10px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                margin-bottom: 12px;
+            }
+
+            @media (min-width: 900px) {
+                .sd-insight { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            }
+
+            .sd-insight article {
+                padding: 14px;
+                border: 1px solid var(--sd-border);
+                border-radius: 12px;
+                background: var(--sd-surface);
+                min-width: 0;
+            }
+
+            .sd-insight .label {
+                font-size: 0.7rem;
+                font-weight: 600;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--sd-muted);
+            }
+
+            .sd-insight .name {
+                margin-top: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .sd-insight .detail {
+                margin-top: 4px;
+                font-size: 0.75rem;
+                color: var(--sd-muted);
+                font-variant-numeric: tabular-nums;
             }
         </style>
     @endonce
 
-    <div class="sales-dashboard">
-        <div class="sales-shell">
-            <div class="dash-header">
-                <div class="dash-title">
-                    <span class="eyebrow">Painel Comercial</span>
-                    <h1>Dashboard de Vendas</h1>
-                    <p>Visão consolidada de vendas, produtos e estoque com foco no que realmente importa.</p>
-                </div>
-                <div class="dash-meta">
-                    <span class="pill"><span></span>Atualizado em {{ $data['meta']['updated_at'] ?? '-' }}</span>
-                </div>
+    <div class="sd">
+        <header class="sd-head">
+            <div>
+                <h1>Dashboard de vendas</h1>
+                <p>Recebimentos confirmados, giro de produtos e estoque. Totais consideram só vendas pagas.</p>
             </div>
+            <div class="sd-updated">Atualizado {{ $data['meta']['updated_at'] ?? '-' }}</div>
+        </header>
 
-            <div class="kpi-grid">
-                <div class="kpi-card" style="animation-delay: 0ms;">
-                    <div class="icon"><i class="fa-solid fa-sack-dollar"></i></div>
-                    <div class="label">Total de vendas</div>
-                    <div class="value">R$ {{ number_format($data['kpis']['total_sales'] ?? 0, 2, ',', '.') }}</div>
+        <section class="sd-kpis" aria-label="Indicadores">
+            <article class="sd-kpi">
+                <div class="label">Recebido (período)</div>
+                <div class="value">R$ {{ number_format($kpis['total_sales'] ?? 0, 2, ',', '.') }}</div>
+                <div class="hint">Vendas confirmadas e pagas</div>
+            </article>
+            <article class="sd-kpi">
+                <div class="label">Ticket médio</div>
+                <div class="value">R$ {{ number_format($kpis['ticket'] ?? 0, 2, ',', '.') }}</div>
+                <div class="hint">Por venda recebida</div>
+            </article>
+            <article class="sd-kpi">
+                <div class="label">Produtos</div>
+                <div class="value">{{ $kpis['products_total'] ?? 0 }}</div>
+                <div class="hint">No catálogo</div>
+            </article>
+        </section>
+
+        <div class="sd-insight" aria-label="Destaques">
+            <article>
+                <div class="label">Mais vendido</div>
+                <div class="name">{{ $products['most_sold']['name'] ?? '—' }}</div>
+                <div class="detail">{{ $products['most_sold']['value'] ?? 0 }} un.</div>
+            </article>
+            <article>
+                <div class="label">Maior faturamento</div>
+                <div class="name">{{ $products['featured']['name'] ?? '—' }}</div>
+                <div class="detail">R$ {{ number_format($products['featured']['value'] ?? 0, 2, ',', '.') }}</div>
+            </article>
+            <article>
+                <div class="label">Preço mais alto</div>
+                <div class="name">{{ $products['most_expensive']['name'] ?? '—' }}</div>
+                <div class="detail">R$ {{ number_format($products['most_expensive']['value'] ?? 0, 2, ',', '.') }}</div>
+            </article>
+            <article>
+                <div class="label">Preço mais baixo</div>
+                <div class="name">{{ $products['cheapest']['name'] ?? '—' }}</div>
+                <div class="detail">R$ {{ number_format($products['cheapest']['value'] ?? 0, 2, ',', '.') }}</div>
+            </article>
+        </div>
+
+        <div class="sd-grid two">
+            <section class="sd-card">
+                <div class="sd-card-head">
+                    <h2>Recebido nos últimos 12 dias</h2>
+                    <span>R$ por dia</span>
                 </div>
-                <div class="kpi-card" style="animation-delay: 120ms;">
-                    <div class="icon accent-2">
-                        <i class="fa-solid fa-receipt"></i>
+                @if ($hasSalesTrend)
+                    <div class="sd-chart is-tall">
+                        <canvas id="chartSalesTrend" aria-label="Gráfico de recebimentos"></canvas>
                     </div>
-                    <div class="label">Ticket médio</div>
-                    <div class="value">R$ {{ number_format($data['kpis']['ticket'] ?? 0, 2, ',', '.') }}</div>
+                @else
+                    <div class="sd-empty">Ainda não há recebimentos neste período.<br>Confirme vendas no PDV para ver a curva.</div>
+                @endif
+            </section>
+
+            <section class="sd-card">
+                <div class="sd-card-head">
+                    <h2>Por categoria</h2>
+                    <span>Participação no recebido</span>
                 </div>
-                <div class="kpi-card" style="animation-delay: 240ms;">
-                    <div class="icon accent-3">
-                        <i class="fa-solid fa-boxes-stacked"></i>
+                @if ($hasCategoryData)
+                    <div class="sd-chart">
+                        <canvas id="chartCategory" aria-label="Gráfico por categoria"></canvas>
                     </div>
-                    <div class="label">Produtos cadastrados</div>
-                    <div class="value">{{ $data['kpis']['products_total'] ?? 0 }}</div>
-                </div>
+                @else
+                    <div class="sd-empty">Sem faturamento por categoria ainda.<br>Cadastre categorias nos produtos e registre vendas.</div>
+                @endif
+            </section>
+        </div>
+
+        <section class="sd-card" style="margin-bottom: 12px;">
+            <div class="sd-card-head">
+                <h2>Produtos mais vendidos</h2>
+                <span>Top 6 por quantidade</span>
             </div>
+            @if ($hasTopProducts)
+                <div class="sd-chart">
+                    <canvas id="chartTopProducts" aria-label="Gráfico de produtos mais vendidos"></canvas>
+                </div>
+            @else
+                <div class="sd-empty">Nenhum ranking ainda — as primeiras vendas preencham esta lista.</div>
+            @endif
+        </section>
 
-            <div class="grid-two">
-                <div class="card" style="animation-delay: 60ms;">
-                    <div class="card-header">
-                        <h3>Vendas por período</h3>
-                        <span>Últimos 12 dias</span>
-                    </div>
-                    <div class="chart-wrap tall">
-                        <canvas id="chartSalesTrend"></canvas>
-                    </div>
+        <div class="sd-grid three">
+            <section class="sd-card">
+                <div class="sd-card-head">
+                    <h2>Estoque</h2>
+                    <span>Alto vs baixo</span>
                 </div>
-                <div class="card" style="animation-delay: 140ms;">
-                    <div class="card-header">
-                        <h3>Distribuição por categoria</h3>
-                        <span>Participação no faturamento</span>
-                    </div>
-                    <div class="chart-wrap">
-                        <canvas id="chartCategory"></canvas>
-                    </div>
+                <div class="sd-chart">
+                    <canvas id="chartStock" aria-label="Gráfico de estoque"></canvas>
                 </div>
-            </div>
+            </section>
 
-            <div class="card" style="animation-delay: 180ms; margin-bottom: 24px;">
-                <div class="card-header">
-                    <h3>Produtos mais vendidos</h3>
-                    <span>Top 6 por quantidade</span>
+            <section class="sd-card">
+                <div class="sd-card-head">
+                    <h2>Estoque baixo</h2>
+                    <span>Reposição</span>
                 </div>
-                <div class="chart-wrap">
-                    <canvas id="chartTopProducts"></canvas>
-                </div>
-            </div>
-
-            <div class="product-grid">
-                <div class="product-card">
-                    <i class="fa-solid fa-medal" style="color: var(--accent);"></i>
-                    <h4>Produto mais vendido</h4>
-                    <p>{{ $data['products']['most_sold']['name'] ?? '—' }}</p>
-                    <p><strong>{{ $data['products']['most_sold']['value'] ?? 0 }}</strong> unidades</p>
-                </div>
-                <div class="product-card">
-                    <i class="fa-solid fa-gem" style="color: var(--accent-3);"></i>
-                    <h4>Produto mais caro</h4>
-                    <p>{{ $data['products']['most_expensive']['name'] ?? '—' }}</p>
-                    <p><strong>R$ {{ number_format($data['products']['most_expensive']['value'] ?? 0, 2, ',', '.') }}</strong></p>
-                </div>
-                <div class="product-card">
-                    <i class="fa-solid fa-tags" style="color: var(--warning);"></i>
-                    <h4>Produto mais barato</h4>
-                    <p>{{ $data['products']['cheapest']['name'] ?? '—' }}</p>
-                    <p><strong>R$ {{ number_format($data['products']['cheapest']['value'] ?? 0, 2, ',', '.') }}</strong></p>
-                </div>
-                <div class="product-card">
-                    <span class="badge">Em destaque</span>
-                    <i class="fa-solid fa-star" style="color: var(--accent-2);"></i>
-                    <h4>Produto em destaque</h4>
-                    <p>{{ $data['products']['featured']['name'] ?? '—' }}</p>
-                    <p><strong>R$ {{ number_format($data['products']['featured']['value'] ?? 0, 2, ',', '.') }}</strong> em vendas</p>
-                </div>
-            </div>
-
-            <div class="stacked-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Estoque</h3>
-                        <span>Alto vs baixo</span>
-                    </div>
-                    <div class="chart-wrap">
-                        <canvas id="chartStock"></canvas>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Estoque baixo</h3>
-                        <span>Precisa de reposição</span>
-                    </div>
-                    <div class="list">
-                        @forelse ($data['stock']['low'] ?? [] as $item)
-                            <div class="list-item low">
-                                <span>{{ $item['name'] }}</span>
-                                <strong>{{ $item['stock'] }} un</strong>
+                <div class="sd-list">
+                    @forelse ($stock['low'] ?? [] as $item)
+                        <div class="sd-row">
+                            <div class="meta">
+                                <strong>{{ $item['name'] }}</strong>
+                                <span>Mín. {{ $item['min_stock'] }}</span>
                             </div>
-                        @empty
-                            <div class="list-item low">Nenhum item crítico.</div>
-                        @endforelse
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Estoque alto</h3>
-                        <span>Produtos com folga</span>
-                    </div>
-                    <div class="list">
-                        @forelse ($data['stock']['high'] ?? [] as $item)
-                            <div class="list-item high">
-                                <span>{{ $item['name'] }}</span>
-                                <strong>{{ $item['stock'] }} un</strong>
-                            </div>
-                        @empty
-                            <div class="list-item high">Sem dados disponíveis.</div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3>Produtos favoritados</h3>
-                    <span>Top 5</span>
-                </div>
-                <div class="favorites">
-                    @forelse ($data['favorites']['top'] ?? [] as $index => $fav)
-                        <div class="favorite-row">
-                            <span>{{ $fav['name'] }}</span>
-                            <div class="favorite-bar">
-                                <div style="width: {{ min(100, ($fav['count'] ?? 0) * 10) }}%"></div>
-                            </div>
-                            <div class="text-xs text-gray-500">{{ $fav['count'] }} favoritos</div>
+                            <span class="sd-pill">{{ $item['stock'] }} un</span>
                         </div>
                     @empty
-                        <div class="favorite-row">
-                            <span>Sem favoritos registrados</span>
-                            <div class="favorite-bar">
-                                <div style="width: 12%"></div>
-                            </div>
-                            <div class="text-xs text-gray-500">Crie favoritos para gerar o ranking</div>
-                        </div>
+                        <div class="sd-empty" style="min-height: 120px;">Nenhum item crítico.</div>
                     @endforelse
                 </div>
-            </div>
+            </section>
+
+            <section class="sd-card">
+                <div class="sd-card-head">
+                    <h2>Maior saldo</h2>
+                    <span>Acima do mínimo</span>
+                </div>
+                <div class="sd-list">
+                    @forelse ($stock['high'] ?? [] as $item)
+                        <div class="sd-row">
+                            <div class="meta">
+                                <strong>{{ $item['name'] }}</strong>
+                                <span>Em estoque</span>
+                            </div>
+                            <span class="sd-pill is-ok">{{ $item['stock'] }} un</span>
+                        </div>
+                    @empty
+                        <div class="sd-empty" style="min-height: 120px;">Sem dados.</div>
+                    @endforelse
+                </div>
+            </section>
         </div>
     </div>
 
@@ -563,183 +430,142 @@
         <script>
             const dashboardPayload = @json($data);
 
-            const getChartTheme = () => {
-                const root = document.querySelector('.sales-dashboard');
-                if (!root) {
-                    return {
-                        text: '#0f172a',
-                        grid: 'rgba(15, 23, 42, 0.08)',
-                        blue: '#2563eb',
-                        green: '#10b981',
-                        teal: '#06b6d4',
-                        amber: '#f59e0b',
-                        muted: '#94a3b8',
-                        blueFill: 'rgba(37, 99, 235, 0.15)',
-                        greenFill: 'rgba(16, 185, 129, 0.7)',
-                        dangerFill: 'rgba(239, 68, 68, 0.6)',
-                    };
-                }
-
-                const styles = getComputedStyle(root);
-                const pick = (name, fallback) => styles.getPropertyValue(name).trim() || fallback;
-
+            const chartColors = () => {
+                const dark = document.documentElement.classList.contains('dark');
                 return {
-                    text: pick('--chart-text', '#0f172a'),
-                    grid: pick('--chart-grid', 'rgba(15, 23, 42, 0.08)'),
-                    blue: pick('--accent', '#2563eb'),
-                    green: pick('--accent-2', '#10b981'),
-                    teal: pick('--accent-3', '#06b6d4'),
-                    amber: pick('--warning', '#f59e0b'),
-                    muted: pick('--chart-muted', '#94a3b8'),
-                    blueFill: pick('--chart-blue-fill', 'rgba(37, 99, 235, 0.15)'),
-                    greenFill: pick('--chart-green-fill', 'rgba(16, 185, 129, 0.7)'),
-                    dangerFill: pick('--chart-danger-fill', 'rgba(239, 68, 68, 0.6)'),
+                    line: dark ? '#fbbf24' : '#b45309',
+                    fill: dark ? 'rgba(251, 191, 36, 0.14)' : 'rgba(180, 83, 9, 0.12)',
+                    tick: dark ? '#a1a1aa' : '#71717a',
+                    grid: dark ? 'rgba(63, 63, 70, 0.8)' : 'rgba(228, 228, 231, 0.9)',
+                    bars: dark
+                        ? ['#fbbf24', '#f59e0b', '#d97706', '#a16207', '#92400e', '#78350f']
+                        : ['#b45309', '#c2410c', '#ea580c', '#f59e0b', '#d97706', '#92400e'],
+                    stock: [dark ? '#4ade80' : '#15803d', dark ? '#f87171' : '#b91c1c'],
                 };
             };
 
+            const moneyLabel = (value) =>
+                ` R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
             const initSalesDashboardCharts = () => {
-                const existingCharts = window.salesDashboardCharts || [];
-                existingCharts.forEach(chart => chart.destroy());
+                if (!window.Chart) return;
+                (window.salesDashboardCharts || []).forEach((chart) => chart.destroy());
                 window.salesDashboardCharts = [];
 
-                const salesCtx = document.getElementById('chartSalesTrend');
-                const categoryCtx = document.getElementById('chartCategory');
-                const topProductsCtx = document.getElementById('chartTopProducts');
-                const stockCtx = document.getElementById('chartStock');
+                const colors = chartColors();
+                const charts = dashboardPayload.charts || {};
 
-                if (!salesCtx || !categoryCtx || !topProductsCtx || !stockCtx) {
-                    return;
+                const salesCtx = document.getElementById('chartSalesTrend');
+                if (salesCtx) {
+                    window.salesDashboardCharts.push(new Chart(salesCtx, {
+                        type: 'line',
+                        data: {
+                            labels: charts.sales?.labels ?? [],
+                            datasets: [{
+                                data: charts.sales?.values ?? [],
+                                borderColor: colors.line,
+                                backgroundColor: colors.fill,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 3,
+                                borderWidth: 2,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { callbacks: { label: (item) => moneyLabel(item.raw) } },
+                            },
+                            scales: {
+                                x: { grid: { display: false }, ticks: { color: colors.tick, maxRotation: 0 }, border: { display: false } },
+                                y: { grid: { color: colors.grid }, ticks: { color: colors.tick }, border: { display: false } },
+                            },
+                        },
+                    }));
                 }
 
-                const chartTheme = getChartTheme();
+                const categoryCtx = document.getElementById('chartCategory');
+                if (categoryCtx) {
+                    window.salesDashboardCharts.push(new Chart(categoryCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: charts.categories?.labels ?? [],
+                            datasets: [{
+                                data: charts.categories?.values ?? [],
+                                backgroundColor: colors.bars,
+                                borderWidth: 0,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { color: colors.tick, boxWidth: 10, font: { size: 11 } },
+                                },
+                                tooltip: { callbacks: { label: (item) => `${item.label}: ${moneyLabel(item.raw)}` } },
+                            },
+                        },
+                    }));
+                }
 
-                // Vendas por período
-                window.salesDashboardCharts.push(new Chart(salesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: dashboardPayload.charts?.sales?.labels ?? [],
-                        datasets: [{
-                            label: 'Vendas (R$)',
-                            data: dashboardPayload.charts?.sales?.values ?? [],
-                            borderColor: chartTheme.blue,
-                            backgroundColor: chartTheme.blueFill,
-                            fill: true,
-                            tension: 0.35,
-                            pointRadius: 3,
-                            pointBackgroundColor: chartTheme.blue,
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: (ctx) => ` R$ ${Number(ctx.raw || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                const topProductsCtx = document.getElementById('chartTopProducts');
+                if (topProductsCtx) {
+                    window.salesDashboardCharts.push(new Chart(topProductsCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: charts.top_products?.labels ?? [],
+                            datasets: [{
+                                data: charts.top_products?.values ?? [],
+                                backgroundColor: colors.line,
+                                borderRadius: 6,
+                                maxBarThickness: 28,
+                            }],
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { color: colors.grid }, ticks: { color: colors.tick }, border: { display: false } },
+                                y: { grid: { display: false }, ticks: { color: colors.tick }, border: { display: false } },
+                            },
+                        },
+                    }));
+                }
+
+                const stockCtx = document.getElementById('chartStock');
+                if (stockCtx) {
+                    window.salesDashboardCharts.push(new Chart(stockCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: charts.stock?.labels ?? ['Estoque alto', 'Estoque baixo'],
+                            datasets: [{
+                                data: charts.stock?.values ?? [0, 0],
+                                backgroundColor: colors.stock,
+                                borderWidth: 0,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { color: colors.tick, boxWidth: 10, font: { size: 11 } },
                                 },
                             },
                         },
-                        scales: {
-                            x: { grid: { display: false }, ticks: { color: chartTheme.text } },
-                            y: { grid: { color: chartTheme.grid }, ticks: { color: chartTheme.text } },
-                        },
-                    },
-                }));
-
-                // Distribuição por categoria
-                window.salesDashboardCharts.push(new Chart(categoryCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: dashboardPayload.charts?.categories?.labels ?? [],
-                        datasets: [{
-                            data: dashboardPayload.charts?.categories?.values ?? [],
-                            backgroundColor: [chartTheme.blue, chartTheme.green, chartTheme.teal, chartTheme.amber, chartTheme.muted],
-                            borderWidth: 0,
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { color: chartTheme.text, boxWidth: 10, boxHeight: 10 },
-                            },
-                        },
-                        cutout: '60%',
-                    },
-                }));
-
-                // Produtos mais vendidos
-                window.salesDashboardCharts.push(new Chart(topProductsCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: dashboardPayload.charts?.top_products?.labels ?? [],
-                        datasets: [{
-                            label: 'Unidades',
-                            data: dashboardPayload.charts?.top_products?.values ?? [],
-                            backgroundColor: chartTheme.greenFill,
-                            borderRadius: 8,
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        indexAxis: 'y',
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { grid: { color: chartTheme.grid }, ticks: { color: chartTheme.text } },
-                            y: { grid: { display: false }, ticks: { color: chartTheme.text } },
-                        },
-                    },
-                }));
-
-                // Estoque alto vs baixo
-                window.salesDashboardCharts.push(new Chart(stockCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: dashboardPayload.charts?.stock?.labels ?? [],
-                        datasets: [{
-                            data: dashboardPayload.charts?.stock?.values ?? [],
-                            backgroundColor: [chartTheme.greenFill, chartTheme.dangerFill],
-                            borderRadius: 10,
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { grid: { display: false }, ticks: { color: chartTheme.text } },
-                            y: { grid: { color: chartTheme.grid }, ticks: { color: chartTheme.text } },
-                        },
-                    },
-                }));
-            };
-
-            const observeThemeChanges = () => {
-                if (window.salesDashboardThemeObserver) {
-                    return;
+                    }));
                 }
-
-                window.salesDashboardThemeObserver = new MutationObserver(() => {
-                    initSalesDashboardCharts();
-                });
-                window.salesDashboardThemeObserver.observe(document.documentElement, {
-                    attributes: true,
-                    attributeFilter: ['class'],
-                });
             };
 
-            document.addEventListener('DOMContentLoaded', () => {
-                initSalesDashboardCharts();
-                observeThemeChanges();
-            });
-            document.addEventListener('livewire:navigated', () => {
-                initSalesDashboardCharts();
-                observeThemeChanges();
-            });
+            document.addEventListener('DOMContentLoaded', initSalesDashboardCharts);
+            document.addEventListener('livewire:navigated', initSalesDashboardCharts);
         </script>
     @endonce
 </x-filament-panels::page>
