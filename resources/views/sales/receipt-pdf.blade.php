@@ -27,10 +27,14 @@
         .receipt-section h2 { margin: 0 0 8px; font-size: 13px; }
         .receipt-sub { margin: 12px 0 6px; font-size: 12px; }
         .receipt-dl { margin: 0; }
-        .receipt-dl > div { display: table; width: 100%; margin-bottom: 3px; }
-        .receipt-dl dt, .receipt-dl dd { display: table-cell; }
-        .receipt-dl dt { width: 28%; color: #6b7280; }
-        .receipt-dl dd { margin: 0; text-align: right; }
+        .receipt-dl > div { display: table; width: 100%; margin-bottom: 4px; }
+        .receipt-dl dt, .receipt-dl dd { display: table-cell; vertical-align: top; }
+        .receipt-dl dt { width: 30%; color: #6b7280; }
+        .receipt-dl dd { margin: 0; text-align: left; word-wrap: break-word; }
+        .receipt-origin-tag {
+            display: inline-block; margin-top: 6px; padding: 2px 8px;
+            border: 1px solid #f59e0b; color: #b45309; font-size: 10px; font-weight: 700;
+        }
         .receipt-table { width: 100%; border-collapse: collapse; }
         .receipt-table th, .receipt-table td {
             border-bottom: 1px solid #e5e7eb;

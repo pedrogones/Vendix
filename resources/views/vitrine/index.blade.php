@@ -119,6 +119,14 @@
             0%, 100% { opacity: 0.25; transform: translateY(0); }
             50% { opacity: 1; transform: translateY(-3px); }
         }
+
+        #chatbot-messages .chatbot-bubble {
+            max-width: 85%;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 <body class="min-h-full text-slate-900">
@@ -277,7 +285,7 @@
         </header>
 
         <div id="chatbot-messages" class="h-80 space-y-3 overflow-y-auto bg-violet-50 px-4 py-4">
-            <div class="max-w-[85%] rounded-2xl rounded-tl-md bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
+            <div class="chatbot-bubble rounded-2xl rounded-tl-md bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
                 Ola! Posso ajudar com promocoes, estoque e duvidas sobre produtos.
             </div>
         </div>
@@ -481,8 +489,8 @@
             const appendMessage = function (role, text) {
                 const bubble = document.createElement('div');
                 bubble.className = role === 'user'
-                    ? 'ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-violet-700 px-3 py-2 text-sm text-white shadow-sm'
-                    : 'max-w-[85%] rounded-2xl rounded-tl-md bg-white px-3 py-2 text-sm text-slate-700 shadow-sm';
+                    ? 'chatbot-bubble ml-auto rounded-2xl rounded-tr-md bg-violet-700 px-3 py-2 text-sm text-white shadow-sm'
+                    : 'chatbot-bubble rounded-2xl rounded-tl-md bg-white px-3 py-2 text-sm text-slate-700 shadow-sm';
 
                 bubble.textContent = text;
                 messages.appendChild(bubble);

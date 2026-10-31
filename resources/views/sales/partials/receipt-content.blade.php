@@ -10,6 +10,17 @@
     $payments = $sale->payments->where('type', 'payment');
     $refunds = $sale->payments->where('type', 'refund');
     $changeTotal = $payments->sum(fn ($p) => (float) $p->change_amount);
+    $isChatOrder = ($sale->origin ?? '') === 'chatbot';
+    $originLabel = match ($sale->origin) {
+        'chatbot' => 'Pedido pelo chat',
+        'pdv', 'balcao', 'counter' => 'Balcão (PDV)',
+        default => filled($sale->origin) ? (string) $sale->origin : 'Balcão (PDV)',
+    };
+    $clientLabel = $sale->client?->cpf
+        ? 'CPF '.$sale->client->cpf
+        : (filled($sale->buyer_name) || filled($sale->buyer_phone)
+            ? trim(($sale->buyer_name ?? '').(filled($sale->buyer_phone) ? ' · '.$sale->buyer_phone : ''))
+            : 'Não identificado');
 @endphp
 
 <header class="receipt-header">
@@ -26,9 +37,12 @@
         @endif
     </div>
     <div class="receipt-meta">
-        <strong>Comprovante de venda</strong>
-        <p>Venda #{{ str_pad((string) $sale->id, 4, '0', STR_PAD_LEFT) }}</p>
+        <strong>{{ $isChatOrder ? 'Comprovante — pedido do chat' : 'Comprovante de venda' }}</strong>
+        <p>{{ $isChatOrder ? 'Pedido' : 'Venda' }} #{{ str_pad((string) $sale->id, 4, '0', STR_PAD_LEFT) }}</p>
         <p class="muted">{{ ($sale->canceled_at ?? $sale->updated_at ?? $sale->created_at)?->format('d/m/Y H:i') }}</p>
+        @if ($isChatOrder)
+            <p class="receipt-origin-tag">Origem: chat / assistente</p>
+        @endif
     </div>
 </header>
 
@@ -42,9 +56,18 @@
     <dl class="receipt-dl">
         <div><dt>Status</dt><dd>{{ $statusLabels[$sale->status] ?? $sale->status }}</dd></div>
         <div><dt>Pagamento</dt><dd>{{ $paymentStatusLabels[$sale->payment_status] ?? $sale->payment_status }}</dd></div>
-        <div><dt>Operador</dt><dd>{{ $sale->user?->name ?? '—' }}</dd></div>
-        <div><dt>Cliente</dt><dd>{{ $sale->client?->cpf ? 'CPF '.$sale->client->cpf : 'Não identificado' }}</dd></div>
-        <div><dt>Origem</dt><dd>{{ $sale->origin ?: '—' }}</dd></div>
+        <div><dt>Operador</dt><dd>{{ $sale->user?->name ?? ($isChatOrder ? 'Assistente (chat)' : '—') }}</dd></div>
+        <div><dt>Cliente</dt><dd>{{ $clientLabel }}</dd></div>
+        <div><dt>Origem</dt><dd>{{ $originLabel }}</dd></div>
+        @if ($isChatOrder && filled($sale->fulfillment_type))
+            <div><dt>Modalidade</dt><dd>{{ \App\Models\Sale::FULFILLMENT_TYPE_LABELS[$sale->fulfillment_type] ?? $sale->fulfillment_type }}</dd></div>
+        @endif
+        @if ($isChatOrder && filled($sale->fulfillment_status))
+            <div><dt>Atendimento</dt><dd>{{ \App\Models\Sale::FULFILLMENT_STATUS_LABELS[$sale->fulfillment_status] ?? $sale->fulfillment_status }}</dd></div>
+        @endif
+        @if ($isChatOrder && $sale->fulfillment_type === 'delivery' && filled($sale->delivery_address))
+            <div><dt>Endereço</dt><dd>{{ $sale->delivery_address }}</dd></div>
+        @endif
         @if ($sale->status === 'canceled')
             <div><dt>Cancelamento</dt><dd>{{ $sale->cancellation_reason ?: '—' }} · {{ $sale->canceled_at?->format('d/m/Y H:i') }}</dd></div>
         @endif

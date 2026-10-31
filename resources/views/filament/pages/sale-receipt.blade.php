@@ -24,11 +24,18 @@
             .sr-panel .receipt-section { margin-bottom:18px; }
             .sr-panel .receipt-section h2 { margin:0 0 10px; font-size:.95rem; font-weight:650; }
             .sr-panel .receipt-sub { margin:14px 0 8px; font-size:.85rem; font-weight:650; }
-            .sr-panel .receipt-dl { display:grid; gap:6px; margin:0; }
-            .sr-panel .receipt-dl > div { display:flex; justify-content:space-between; gap:12px; font-size:.85rem; }
-            .sr-panel .receipt-dl dt { color:#71717a; }
+            .sr-panel .receipt-dl { display:grid; gap:8px; margin:0; }
+            .sr-panel .receipt-dl > div {
+                display:grid; grid-template-columns:7.5rem minmax(0,1fr); gap:8px 12px; font-size:.85rem; align-items:start;
+            }
+            .sr-panel .receipt-dl dt { color:#71717a; margin:0; }
             .dark .sr-panel .receipt-dl dt { color:#a1a1aa; }
-            .sr-panel .receipt-dl dd { margin:0; font-weight:550; text-align:right; }
+            .sr-panel .receipt-dl dd { margin:0; font-weight:550; text-align:left; overflow-wrap:anywhere; }
+            .sr-panel .receipt-origin-tag {
+                margin:6px 0 0; display:inline-block; padding:2px 8px; border-radius:999px;
+                background:#fff7ed; color:#b45309; font-size:.72rem; font-weight:700;
+            }
+            .dark .sr-panel .receipt-origin-tag { background:rgba(251,191,36,.12); color:#fbbf24; }
             .sr-panel .receipt-table { width:100%; border-collapse:collapse; font-size:.85rem; }
             .sr-panel .receipt-table th, .sr-panel .receipt-table td {
                 border-bottom:1px solid #e4e4e7; padding:8px 4px; text-align:left;

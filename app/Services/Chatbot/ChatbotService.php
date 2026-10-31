@@ -667,15 +667,12 @@ class ChatbotService
         if ($this->isAffirmative($message)) {
             try {
                 $order = $this->checkoutService->finalize($sessionId);
-                $statusUrlHint = url('/pedido/consultar');
-
                 return $this->buildResponse(
                     'order_confirmed',
                     sprintf(
-                        'Pedido confirmado! Numero: %s. Total: %s. Pagamento sera confirmado na loja. Acompanhe em %s com o numero do pedido e o telefone %s.',
+                        'Pedido confirmado pelo chat! Numero: %s. Total: %s. Pagamento sera confirmado na loja. Acompanhe em /pedido/consultar com o numero do pedido e o telefone %s.',
                         $order['order_number'],
                         $this->productRules->formatCurrency((float) $order['total']),
-                        $statusUrlHint,
                         $order['buyer_phone']
                     ),
                     $sessionId,

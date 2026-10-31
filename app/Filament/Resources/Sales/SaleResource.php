@@ -123,13 +123,35 @@ class SaleResource extends BaseAclResource
         return $table
             ->recordTitleAttribute('id')
             ->columns([
+                TextColumn::make('id')
+                    ->label('Nº')
+                    ->formatStateUsing(fn ($state): string => '#'.str_pad((string) $state, 4, '0', STR_PAD_LEFT))
+                    ->sortable(),
+                TextColumn::make('origin')
+                    ->label('Origem')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'chatbot' => 'Chat',
+                        default => 'PDV',
+                    })
+                    ->colors([
+                        'info' => 'chatbot',
+                        'gray' => fn (?string $state): bool => $state !== 'chatbot',
+                    ])
+                    ->sortable(),
                 TextColumn::make('client.cpf')
                     ->label('CPF Cliente')
-                    ->searchable(),
-
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('buyer_name')
+                    ->label('Contato (chat)')
+                    ->searchable()
+                    ->toggleable()
+                    ->placeholder('—'),
                 TextColumn::make('user.name')
                     ->label('Vendedor')
-                    ->searchable(),
+                    ->searchable()
+                    ->placeholder('—'),
 
                 TextColumn::make('total')
                     ->label('Total')
