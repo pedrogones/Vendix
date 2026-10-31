@@ -337,12 +337,12 @@ class IntentClassifierService
 
     private function shouldLogPrompt(): bool
     {
-        return (bool) config('services.gemini.log_prompt', true);
+        return (bool) config('services.gemini.log_prompt', false);
     }
 
     private function shouldLogResponse(): bool
     {
-        return (bool) config('services.gemini.log_response', true);
+        return (bool) config('services.gemini.log_response', false);
     }
 
     private function truncate(mixed $value, int $max = 4000): mixed

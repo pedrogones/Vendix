@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,8 +24,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Carbon::setLocale('pt_BR');
-        //        if (app()->environment('local')) {
-        //            URL::forceScheme('https');
-        //        }
+
+        RateLimiter::for('chatbot', function (Request $request) {
+            $key = $request->session()->getId() ?: $request->ip();
+
+            return Limit::perMinute((int) config('services.chatbot.rate_limit_per_minute', 30))->by($key);
+        });
     }
 }

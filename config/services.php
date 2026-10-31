@@ -41,14 +41,19 @@ return [
         'url' => env('BLUESOFT_API_URL', 'https://cosmos.bluesoft.com.br/api'),
     ],
 
+    'chatbot' => [
+        'rate_limit_per_minute' => env('CHATBOT_RATE_LIMIT_PER_MINUTE', 30),
+    ],
+
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
         'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
         'temperature' => env('GEMINI_TEMPERATURE', 0.2),
         'max_output_tokens' => env('GEMINI_MAX_OUTPUT_TOKENS', 350),
         'log_channel' => env('GEMINI_LOG_CHANNEL', 'gemini'),
-        'log_prompt' => env('GEMINI_LOG_PROMPT', true),
-        'log_response' => env('GEMINI_LOG_RESPONSE', true),
+        // Prompt/response completos desligados por padrão (retenção do canal: GEMINI_LOG_DAYS).
+        'log_prompt' => env('GEMINI_LOG_PROMPT', false),
+        'log_response' => env('GEMINI_LOG_RESPONSE', false),
     ],
 
 ];

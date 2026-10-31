@@ -10,10 +10,18 @@ class ProductRuleService
 {
     public function findByText(string $text): ?Product
     {
+        return $this->searchCandidates($text, 1)->first();
+    }
+
+    /**
+     * @return Collection<int,Product>
+     */
+    public function searchCandidates(string $text, int $limit = 5): Collection
+    {
         $tokens = $this->extractTokens($text);
 
-        if ($tokens === []) {
-            return null;
+        if ($tokens === [] || $limit < 1) {
+            return collect();
         }
 
         return Product::query()
@@ -28,7 +36,8 @@ class ProductRuleService
             ->orderByDesc('is_active')
             ->orderByRaw('CASE WHEN stock > 0 THEN 1 ELSE 0 END DESC')
             ->orderByDesc('created_at')
-            ->first();
+            ->limit($limit)
+            ->get();
     }
 
     /**

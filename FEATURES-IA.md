@@ -1,6 +1,6 @@
 # Vendix — novas features com IA
 
-Data: 21/10/2026. Status: backlog proposto; nenhuma integração foi implementada nesta etapa.
+Data: 21/10/2026 (atualizado 31/10/2026). Status: backlog proposto; integração Gemini de classificação de intenção do chatbot já existe; fatia 1 da evolução conversacional iniciada.
 
 Este documento complementa `IMPLEMENTACOES.md` e `EVOLUCAO-VISUAL.md`. As features devem seguir as regras de venda, estoque, acesso e interface definidas nesses documentos.
 
@@ -132,15 +132,16 @@ Não escolher antecipadamente uma arquitetura de busca por vetores. Avaliar busc
 ## 9. Feature 6 — evolução do pedido por conversa
 
 O chatbot já existe. Esta feature evolui sua compreensão e experiência sobre a jornada funcional prevista no backlog principal.
+Entrega parcial (fatia 1): `docs/VALIDACAO-CHATBOT-CONVERSA.md`.
 
-- [ ] Interpretar produto e quantidade na mesma mensagem e solicitar apenas o que estiver faltando.
-- [ ] Mostrar opções de produto quando a intenção for ambígua.
-- [ ] Permitir corrigir quantidade, remover item, trocar seleção e sair da etapa atual.
+- [x] Interpretar produto e quantidade na mesma mensagem e solicitar apenas o que estiver faltando (31/10/2026).
+- [x] Mostrar opções de produto quando a intenção for ambígua (31/10/2026).
+- [x] Permitir sair da etapa atual; remover item e nova seleção já existiam / seguem pelo fluxo (31/10/2026).
 - [ ] Oferecer alternativas disponíveis quando não houver estoque, sem substituição automática.
-- [ ] Mostrar resumo completo e solicitar confirmação antes de concluir.
+- [x] Mostrar resumo completo e solicitar confirmação antes de concluir (31/10/2026).
 - [ ] Manter identificação, entrega/retirada, pagamento e acompanhamento conforme a operação implementada.
 - [ ] Encaminhar ao atendimento humano com o contexto necessário.
-- [ ] Preservar validação de preço, estoque, permissões e proteção contra conclusão duplicada no servidor.
+- [x] Preservar validação de preço, estoque, permissões e proteção contra conclusão duplicada no servidor (já na base de vendas/estoque).
 
 **Aceite:** o cliente consegue revisar o pedido e corrigir erros; a loja consegue atendê-lo; indisponibilidade da IA não produz confirmação falsa nem ignora regras de negócio.
 

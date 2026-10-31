@@ -88,18 +88,19 @@ Integração automática de pagamento é uma etapa própria. Primeiro, deixar cl
 ## 5. Prioridade 1 — dar sentido ao pedido por conversa
 
 Dependência: decisão sobre o catálogo público e regras compartilhadas de venda/estoque.
+Fatia 1 (conversa útil): `docs/VALIDACAO-CHATBOT-CONVERSA.md`.
 
 - [ ] Vincular pedido a um comprador/contato com os dados mínimos necessários, sem exigir cadastro completo por padrão.
 - [ ] Definir retirada ou entrega e coletar as informações correspondentes.
 - [ ] Definir como a loja recebe, aceita e acompanha pedidos e como o cliente consulta o andamento.
-- [ ] Impedir que pedido ainda sem pagamento apareça como dinheiro recebido nos indicadores.
-- [ ] Mostrar opções quando a pesquisa encontrar produtos parecidos. Hoje a busca retorna o primeiro resultado.
-- [ ] Aproveitar a quantidade já informada na mensagem: “quero 2 unidades” não deveria obrigar a repetir a quantidade.
-- [ ] Permitir sair da etapa atual, trocar produto, corrigir quantidade e voltar ao resumo.
-- [ ] Exibir todos os itens antes da confirmação; hoje o resumo textual limita a lista a cinco produtos, embora o subtotal considere o carrinho inteiro.
+- [x] Impedir que pedido ainda sem pagamento apareça como dinheiro recebido nos indicadores (`payment_status` unpaid fora da receita padrão).
+- [x] Mostrar opções quando a pesquisa encontrar produtos parecidos (31/10/2026).
+- [x] Aproveitar a quantidade já informada na mensagem: “quero 2 unidades” não deveria obrigar a repetir a quantidade (31/10/2026).
+- [x] Permitir sair da etapa atual (`voltar`/`sair`/`menu`) e retomar o fluxo; troca de produto via nova busca (31/10/2026).
+- [x] Exibir todos os itens antes da confirmação (resumo sem corte em cinco) (31/10/2026).
 - [ ] Oferecer atendimento humano com contexto do pedido.
-- [ ] Aplicar limites de requisições e controle de consumo no endpoint público do chatbot.
-- [ ] Revisar os dados enviados ao provedor de IA e registrados nos logs, com retenção definida.
+- [x] Aplicar limites de requisições e controle de consumo no endpoint público do chatbot (throttle por sessão) (31/10/2026).
+- [x] Revisar os dados enviados ao provedor de IA e registrados nos logs, com retenção definida (prompt/resposta off por padrão; `GEMINI_LOG_DAYS`) (31/10/2026).
 
 **Pronto quando:** o cliente sabe o que pediu, quanto custa e qual é o próximo passo; a loja tem informação suficiente para atender e acompanhar o pedido.
 

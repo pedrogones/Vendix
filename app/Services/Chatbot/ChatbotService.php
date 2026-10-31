@@ -5,6 +5,7 @@ namespace App\Services\Chatbot;
 use App\Models\Product;
 use App\Services\Cart\CartService;
 use App\Services\Sales\ChatbotCheckoutService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class ChatbotService
@@ -39,6 +40,21 @@ class ChatbotService
         }
 
         $state = $this->stateService->get($sessionId);
+
+        if (in_array($state['step'], ['awaiting_quantity', 'awaiting_confirmation', 'awaiting_product_choice'], true)
+            && $this->isCancelNavigation($message)) {
+            $this->stateService->clearPending($sessionId);
+
+            return $this->buildResponse(
+                'step_canceled',
+                'Ok, voltei ao menu. Posso ajudar com consulta de produto, promocoes, montar pedido, entrega e pagamento.',
+                $sessionId
+            );
+        }
+
+        if ($state['step'] === 'awaiting_product_choice') {
+            return $this->handleAwaitingProductChoice($sessionId, $message, $state);
+        }
 
         if ($state['step'] === 'awaiting_quantity') {
             return $this->handleAwaitingQuantity($sessionId, $message, $state);
@@ -90,15 +106,22 @@ class ChatbotService
     private function handleProductLookup(string $sessionId, string $message, array $entities): array
     {
         $query = (string) ($entities['product_name'] ?? $message);
-        $product = $this->productRules->findByText($query);
+        $candidates = $this->productRules->searchCandidates($query, 5);
 
-        if (! $product instanceof Product) {
+        if ($candidates->isEmpty()) {
             return $this->buildResponse(
                 'product_lookup',
                 'Nao encontrei esse produto. Informe um nome mais especifico para eu consultar.',
                 $sessionId
             );
         }
+
+        if ($candidates->count() > 1) {
+            return $this->offerProductChoices($sessionId, $candidates, 'lookup', null);
+        }
+
+        /** @var Product $product */
+        $product = $candidates->first();
 
         return $this->buildResponse(
             'product_lookup',
@@ -149,9 +172,11 @@ class ChatbotService
     private function handleOrderStart(string $sessionId, string $message, array $entities): array
     {
         $query = (string) ($entities['product_name'] ?? $message);
-        $product = $this->productRules->findByText($query);
+        $quantity = $this->normalizeQuantity($entities['quantity'] ?? null)
+            ?? $this->extractQuantity($message);
+        $candidates = $this->productRules->searchCandidates($query, 5);
 
-        if (! $product instanceof Product) {
+        if ($candidates->isEmpty()) {
             return $this->buildResponse(
                 'order_start',
                 'Para montar o pedido, me diga o nome do produto que voce quer adicionar.',
@@ -159,9 +184,131 @@ class ChatbotService
             );
         }
 
-        $validation = $this->productRules->validateForSale($product, 1);
+        if ($candidates->count() > 1) {
+            return $this->offerProductChoices($sessionId, $candidates, 'order', $quantity);
+        }
 
+        /** @var Product $product */
+        $product = $candidates->first();
+
+        return $this->beginOrderForProduct($sessionId, $product, $quantity);
+    }
+
+    /**
+     * @param  Collection<int,Product>  $candidates
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function offerProductChoices(string $sessionId, Collection $candidates, string $action, ?int $quantity): array
+    {
+        $lines = $candidates->values()->map(function (Product $product, int $index): string {
+            $pricing = $this->productRules->pricing($product);
+
+            return sprintf(
+                '%d) %s — %s (estoque %d)',
+                $index + 1,
+                $product->name,
+                $this->productRules->formatCurrency($pricing['unit_price']),
+                (int) $product->stock
+            );
+        })->implode("\n");
+
+        $this->stateService->update($sessionId, [
+            'step' => 'awaiting_product_choice',
+            'pending_candidates' => $candidates->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
+            'pending_action' => $action,
+            'pending_quantity' => $quantity,
+            'pending_product_id' => null,
+            'pending_product_name' => null,
+        ]);
+
+        return $this->buildResponse(
+            'product_choices',
+            "Encontrei mais de um produto. Escolha pelo numero:\n{$lines}\n(Digite voltar para cancelar.)",
+            $sessionId,
+            [
+                'candidates' => $candidates->pluck('id')->values()->all(),
+                'pending_action' => $action,
+            ]
+        );
+    }
+
+    /**
+     * @param  array<string,mixed>  $state
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function handleAwaitingProductChoice(string $sessionId, string $message, array $state): array
+    {
+        $candidates = array_values(array_map('intval', $state['pending_candidates'] ?? []));
+        if ($candidates === []) {
+            $this->stateService->clearPending($sessionId);
+
+            return $this->buildResponse(
+                'product_choices',
+                'A lista de opcoes expirou. Informe o produto novamente.',
+                $sessionId
+            );
+        }
+
+        $choice = $this->extractChoiceIndex($message, count($candidates));
+        if ($choice === null) {
+            return $this->buildResponse(
+                'awaiting_product_choice',
+                'Responda com o numero da opcao desejada, ou digite voltar para cancelar.',
+                $sessionId
+            );
+        }
+
+        $product = Product::query()->whereKey($candidates[$choice - 1])->first();
+        if (! $product instanceof Product) {
+            $this->stateService->clearPending($sessionId);
+
+            return $this->buildResponse(
+                'product_choices',
+                'Essa opcao nao esta mais disponivel. Informe o produto novamente.',
+                $sessionId
+            );
+        }
+
+        $action = (string) ($state['pending_action'] ?? 'lookup');
+        $quantity = $this->normalizeQuantity($state['pending_quantity'] ?? null);
+
+        if ($action === 'order') {
+            return $this->beginOrderForProduct($sessionId, $product, $quantity);
+        }
+
+        $this->stateService->clearPending($sessionId);
+
+        return $this->buildResponse(
+            'product_lookup',
+            $this->productRules->buildProductSummary($product),
+            $sessionId,
+            ['product_id' => (int) $product->id]
+        );
+    }
+
+    /**
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function beginOrderForProduct(string $sessionId, Product $product, ?int $quantity): array
+    {
+        if ($quantity !== null && $quantity > 0) {
+            $currentQuantity = $this->cartService->itemQuantity($sessionId, (int) $product->id);
+            $validation = $this->productRules->validateForSale($product, $currentQuantity + $quantity);
+            if (! $validation['ok']) {
+                $this->stateService->clearPending($sessionId);
+
+                return $this->buildResponse('order_start', $validation['message'], $sessionId, [
+                    'product_id' => (int) $product->id,
+                ]);
+            }
+
+            return $this->addProductToCart($sessionId, $product, $quantity);
+        }
+
+        $validation = $this->productRules->validateForSale($product, 1);
         if (! $validation['ok']) {
+            $this->stateService->clearPending($sessionId);
+
             return $this->buildResponse('order_start', $validation['message'], $sessionId, [
                 'product_id' => (int) $product->id,
             ]);
@@ -180,12 +327,15 @@ class ChatbotService
             'step' => 'awaiting_quantity',
             'pending_product_id' => (int) $product->id,
             'pending_product_name' => (string) $product->name,
+            'pending_candidates' => [],
+            'pending_quantity' => null,
+            'pending_action' => null,
         ]);
 
         return $this->buildResponse(
             'order_start',
             sprintf(
-                'Produto selecionado: %s. %s Estoque: %d unidade(s). Quantas unidades voce deseja?',
+                'Produto selecionado: %s. %s Estoque: %d unidade(s). Quantas unidades voce deseja? (Digite voltar para cancelar.)',
                 $product->name,
                 $priceText,
                 (int) $product->stock
@@ -207,7 +357,7 @@ class ChatbotService
             return $this->buildResponse(
                 'awaiting_quantity',
                 sprintf(
-                    'Informe a quantidade em numero inteiro para "%s".',
+                    'Informe a quantidade em numero inteiro para "%s", ou digite voltar para cancelar.',
                     $state['pending_product_name'] ?? 'o produto selecionado'
                 ),
                 $sessionId
@@ -234,6 +384,14 @@ class ChatbotService
             return $this->buildResponse('awaiting_quantity', $validation['message'], $sessionId);
         }
 
+        return $this->addProductToCart($sessionId, $product, $quantity);
+    }
+
+    /**
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function addProductToCart(string $sessionId, Product $product, int $quantity): array
+    {
         $pricing = $this->productRules->pricing($product);
 
         $cart = $this->cartService->addItem($sessionId, $product, $quantity, [
@@ -242,11 +400,7 @@ class ChatbotService
             'is_promotion' => $pricing['is_promotion'],
         ]);
 
-        $this->stateService->update($sessionId, [
-            'step' => 'idle',
-            'pending_product_id' => null,
-            'pending_product_name' => null,
-        ]);
+        $this->stateService->clearPending($sessionId);
 
         $economyText = $pricing['is_promotion']
             ? ' Economia por unidade: '.$this->productRules->formatCurrency($pricing['economy']).'.'
@@ -340,7 +494,7 @@ class ChatbotService
 
         return $this->buildResponse(
             'order_confirm',
-            $this->buildCartSummaryText($cart).' Digite SIM para confirmar ou NAO para cancelar.',
+            $this->buildCartSummaryText($cart).' Digite SIM para confirmar, NAO para cancelar a confirmacao, ou voltar.',
             $sessionId
         );
     }
@@ -389,7 +543,7 @@ class ChatbotService
 
         return $this->buildResponse(
             'awaiting_confirmation',
-            'Responda com SIM para confirmar o pedido ou NAO para cancelar a confirmacao.',
+            'Responda com SIM para confirmar o pedido, NAO para cancelar a confirmacao, ou voltar.',
             $sessionId,
             ['current_step' => $state['step'] ?? 'awaiting_confirmation']
         );
@@ -441,8 +595,7 @@ class ChatbotService
         }
 
         $lines = [];
-
-        foreach (array_slice($cart['items'], 0, 5) as $item) {
+        foreach ($cart['items'] as $item) {
             $lines[] = sprintf(
                 '%dx %s (%s)',
                 (int) $item['quantity'],
@@ -466,6 +619,39 @@ class ChatbotService
         }
 
         return null;
+    }
+
+    private function normalizeQuantity(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        if (! is_numeric($value)) {
+            return null;
+        }
+        $quantity = (int) $value;
+
+        return $quantity > 0 ? $quantity : null;
+    }
+
+    private function extractChoiceIndex(string $message, int $max): ?int
+    {
+        if (preg_match('/\b([1-9][0-9]?)\b/', trim($message), $matches) !== 1) {
+            return null;
+        }
+        $index = (int) $matches[1];
+        if ($index < 1 || $index > $max) {
+            return null;
+        }
+
+        return $index;
+    }
+
+    private function isCancelNavigation(string $message): bool
+    {
+        $normalized = (string) Str::of($message)->lower()->ascii()->trim();
+
+        return in_array($normalized, ['voltar', 'sair', 'cancelar', 'cancela', 'menu', 'parar'], true);
     }
 
     private function isAffirmative(string $message): bool
