@@ -16,6 +16,7 @@ class AclSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $this->call(SalesStockPermissionsSeeder::class);
+        $this->call(CashRegisterPermissionsSeeder::class);
 
         $permissions = [
 

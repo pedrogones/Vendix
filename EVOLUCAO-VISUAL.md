@@ -95,9 +95,9 @@ O painel deve ajudar a decidir o que fazer, com números que tenham significado 
 - [ ] Mostrar estoque insuficiente e erros sem perder os itens já adicionados.
 - [ ] Diferenciar visualmente rascunho, confirmação da venda e recebimento, conforme as regras implementadas.
 - [ ] Prever uso por teclado/leitor no desktop e câmera/toque no celular.
-- [ ] Definir comportamento após concluir: comprovante, próxima venda e retorno ao painel.
+- [x] Comprovante operacional após concluir (imprimir/PDF) e retorno ao PDV para próxima venda (31/10/2026).
 
-Dependência funcional: recebimento e caixa ainda precisam das implementações do backlog. Protótipos podem representar o fluxo futuro, mas devem indicar o que ainda é proposto.
+Recebimento, caixa e comprovante operacional já estão no sistema. Protótipos de telas futuras (trocas parciais, etc.) devem indicar o que ainda é proposto.
 
 **Pronto quando:** uma venda comum pode ser montada, conferida e concluída sem dúvidas sobre itens, total e resultado da ação.
 

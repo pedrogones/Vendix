@@ -35,6 +35,30 @@
     font-size: 13px;
 }
 
+.pdv-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.pdv-discard {
+    border: 1px solid var(--pdv-border);
+    background: var(--pdv-surface);
+    color: var(--pdv-muted);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pdv-discard:hover {
+    color: var(--pdv-text);
+    border-color: var(--pdv-text);
+}
+
 .pdv-sale-id {
     display: flex;
     align-items: center;
@@ -623,4 +647,28 @@
 
 .pdv-item-action:not(:has(.pdv-product-info)) .pdv-add-button {
     margin-top: 0;
+}
+
+.pdv-cash-alert {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #fcd34d;
+    background: #fffbeb;
+    color: #92400e;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.pdv-cash-alert a {
+    color: inherit;
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.dark .pdv-cash-alert {
+    border-color: rgba(251, 191, 36, .35);
+    background: rgba(251, 191, 36, .12);
+    color: #fbbf24;
 }

@@ -166,6 +166,12 @@ class SaleResource extends BaseAclResource
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make()->authorize(fn (Sale $record): bool => static::canEdit($record)),
+                Action::make('receipt')
+                    ->label('Comprovante')
+                    ->icon(Heroicon::OutlinedDocumentText)
+                    ->url(fn (Sale $record): string => \App\Filament\Pages\SaleReceipt::getUrl(['sale' => $record]))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Sale $record): bool => in_array($record->status, ['confirmed', 'canceled'], true) && ! $record->trashed()),
                 Action::make('cancel')
                     ->label('Cancelar venda')
                     ->color('danger')

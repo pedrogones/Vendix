@@ -6,8 +6,11 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SalePayment;
+use App\Services\Cash\CashSessionService;
 use App\Services\Products\ProductPricingService;
 use App\Services\Sales\ConfirmSaleWithPaymentService;
+use App\Services\Sales\SaleDraftService;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -61,9 +64,21 @@ class StartSale extends Page implements HasForms
         ];
     }
 
-    public function mount(): void
+    public function mount(Sale|int|string|null $sale = null): void
     {
-        $this->ensureSaleExists();
+        $preferred = null;
+        if ($sale instanceof Sale) {
+            $preferred = $sale;
+        } elseif (filled($sale)) {
+            $preferred = Sale::query()->find($sale);
+        }
+
+        $this->sale = app(SaleDraftService::class)->resolveForOperator((int) auth()->id(), $preferred);
+
+        if ($this->sale?->client?->cpf) {
+            $this->saleData['cpf'] = $this->sale->client->cpf;
+        }
+
         $this->saleForm->fill($this->saleData);
         $this->resetPaymentLines();
     }
@@ -133,26 +148,19 @@ class StartSale extends Page implements HasForms
             return;
         }
 
-        \Illuminate\Support\Facades\Gate::authorize('create-sales');
-        $this->sale = Sale::create([
-            'status' => 'draft',
-            'user_id' => auth()->id(),
-            'client_id' => null,
-            'total' => 0,
-        ]);
+        $this->sale = app(SaleDraftService::class)->create((int) auth()->id());
     }
 
     protected function handleCpfUpdated(?string $value): void
     {
         $cpf = $value ? preg_replace('/\D+/', '', $value) : null;
 
-        if (! $cpf || ! $this->sale) {
+        if (! $cpf || strlen($cpf) !== 11) {
             return;
         }
 
-        if (strlen($cpf) !== 11) {
-            return;
-        }
+        $this->ensureSaleExists();
+
         \Illuminate\Support\Facades\DB::transaction(function () use ($cpf): void {
             $sale = Sale::query()->lockForUpdate()->findOrFail($this->sale->id);
             \Illuminate\Support\Facades\Gate::authorize($sale->user_id === auth()->id() ? 'create-sales' : 'edit-sales');
@@ -161,6 +169,7 @@ class StartSale extends Page implements HasForms
             }
             $client = Client::firstOrCreate(['cpf' => $cpf]);
             $sale->update(['client_id' => $client->id]);
+            $this->sale = $sale->fresh(['client', 'items.product']);
         });
     }
 
@@ -187,8 +196,8 @@ class StartSale extends Page implements HasForms
             return;
         }
 
-        $this->resetSaleForm();
-        $this->sale->refresh()->load('items.product');
+        $this->resetSaleFormKeepingClient();
+        $this->sale->refresh()->load('items.product', 'client');
         $this->syncPrimaryPaymentAmount();
     }
 
@@ -204,14 +213,33 @@ class StartSale extends Page implements HasForms
             Notification::make()->title($exception->getMessage())->danger()->send();
         }
 
-        $this->sale->refresh()->load('items.product');
+        $this->sale->refresh()->load('items.product', 'client');
         $this->syncPrimaryPaymentAmount();
     }
 
-    protected function resetSaleForm(): void
+    public function discardDraft(): void
     {
+        if (! $this->sale) {
+            return;
+        }
+
+        try {
+            app(SaleDraftService::class)->discard($this->sale);
+            $this->sale = null;
+            $this->saleData = ['cpf' => null, 'product_id' => null, 'quantity' => 1, 'discount' => 0];
+            $this->saleForm->fill($this->saleData);
+            $this->resetPaymentLines();
+            Notification::make()->title('Rascunho descartado.')->success()->send();
+        } catch (\DomainException $exception) {
+            Notification::make()->title($exception->getMessage())->danger()->send();
+        }
+    }
+
+    protected function resetSaleFormKeepingClient(): void
+    {
+        $cpf = $this->sale?->client?->cpf;
         $this->saleData = [
-            'cpf' => null,
+            'cpf' => $cpf,
             'product_id' => null,
             'quantity' => 1,
             'discount' => 0,
@@ -320,6 +348,11 @@ class StartSale extends Page implements HasForms
         return $sum / 100;
     }
 
+    public function getCashSessionOpenProperty(): bool
+    {
+        return app(CashSessionService::class)->currentOpen() !== null;
+    }
+
     public function confirmSale(): void
     {
         if (! $this->sale) {
@@ -328,18 +361,24 @@ class StartSale extends Page implements HasForms
 
         try {
             \Illuminate\Support\Facades\Gate::authorize($this->sale->user_id === auth()->id() ? 'create-sales' : 'edit-sales');
-            app(ConfirmSaleWithPaymentService::class)->confirm($this->sale, $this->paymentLines);
+            $confirmedSale = $this->sale;
+            app(ConfirmSaleWithPaymentService::class)->confirm($confirmedSale, $this->paymentLines);
 
             Notification::make()
                 ->title('Venda confirmada e recebimento registrado.')
                 ->success()
+                ->actions([
+                    Action::make('receipt')
+                        ->label('Ver comprovante')
+                        ->url(SaleReceipt::getUrl(['sale' => $confirmedSale]), true),
+                ])
                 ->send();
 
             $this->sale = null;
             $this->saleData = ['cpf' => null, 'product_id' => null, 'quantity' => 1, 'discount' => 0];
             $this->saleForm->fill($this->saleData);
-            $this->ensureSaleExists();
             $this->resetPaymentLines();
+            app(SaleDraftService::class)->discardEmptyDrafts((int) auth()->id());
         } catch (\DomainException $e) {
             Notification::make()
                 ->title($e->getMessage())

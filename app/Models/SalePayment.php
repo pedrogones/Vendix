@@ -18,6 +18,7 @@ class SalePayment extends Model
 
     protected $fillable = [
         'sale_id',
+        'cash_session_id',
         'type',
         'method',
         'amount',
@@ -36,6 +37,11 @@ class SalePayment extends Model
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);
+    }
+
+    public function cashSession(): BelongsTo
+    {
+        return $this->belongsTo(CashSession::class, 'cash_session_id');
     }
 
     public function recorder(): BelongsTo

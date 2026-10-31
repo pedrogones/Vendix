@@ -21,8 +21,8 @@
                     <span class="shrink-0 text-violet-700 transition group-open:rotate-45">+</span>
                 </summary>
                 <p class="mt-3 text-base text-slate-600 sm:text-lg">
-                    Hoje registramos o recebimento da venda (meios manuais) e mostramos o faturamento recebido nos relatórios.
-                    Abertura/fechamento de caixa e contas a pagar/receber ainda não fazem parte desta versão.
+                    Hoje registramos o recebimento da venda (meios manuais), abrimos e fechamos o caixa com sangria/suprimento e divergência, e mostramos o faturamento recebido nos relatórios.
+                    Contas a pagar/receber e fluxo de caixa completo ainda não fazem parte desta versão.
                 </p>
             </details>
 

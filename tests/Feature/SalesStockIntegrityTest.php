@@ -14,8 +14,10 @@ use App\Services\Chatbot\ProductRuleService;
 use App\Services\Products\ProductWriteService;
 use App\Services\Reports\SalesReportService;
 use App\Services\Sales\ChatbotCheckoutService;
+use App\Services\Cash\CashSessionService;
 use App\Services\Sales\ConfirmSaleWithPaymentService;
 use App\Services\Sales\RecordSalePaymentService;
+use App\Services\Sales\SaleDraftService;
 use App\Services\Sales\SaleItemService;
 use App\Services\Stocks\CancelSaleService;
 use App\Services\Stocks\ConfirmSaleService;
@@ -36,7 +38,11 @@ class SalesStockIntegrityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        foreach (['view-dashboard', 'create-products', 'edit-products', 'create-sales', 'edit-sales', 'delete-sales', 'cancel-sales', 'view-stock-movements', 'view-any-stock-movements', 'create-stock-movements', 'view-products', 'view-any-products', 'view-sales', 'view-any-sales'] as $name) {
+        foreach ([
+            'view-dashboard', 'create-products', 'edit-products', 'create-sales', 'edit-sales', 'delete-sales', 'cancel-sales',
+            'view-stock-movements', 'view-any-stock-movements', 'create-stock-movements', 'view-products', 'view-any-products',
+            'view-sales', 'view-any-sales', 'view-cash-register', 'open-cash', 'close-cash', 'manage-cash-movements',
+        ] as $name) {
             Permission::findOrCreate($name, 'web');
         }
         $user = User::factory()->create();
@@ -50,6 +56,11 @@ class SalesStockIntegrityTest extends TestCase
             'name' => 'Produto teste', 'slug' => (string) Str::uuid(), 'price' => 10,
             'stock' => $stock, 'is_active' => true, 'is_on_sale' => false,
         ], $attributes));
+    }
+
+    private function openCash(float|string $opening = 100): void
+    {
+        app(CashSessionService::class)->open($opening);
     }
 
     private function sale(Product $product, int $quantity = 2): Sale
@@ -384,12 +395,16 @@ class SalesStockIntegrityTest extends TestCase
 
     public function test_balcao_add_remove_confirm_flow(): void
     {
+        $this->openCash();
         \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
         $product = $this->product();
-        $screen = \Livewire\Livewire::test(\App\Filament\Pages\StartSale::class)
-            ->fillForm(['product_id' => $product->id, 'quantity' => 2, 'discount' => 1], 'saleForm')
+        $screen = \Livewire\Livewire::test(\App\Filament\Pages\StartSale::class);
+        $this->assertNull($screen->instance()->sale);
+        $this->assertSame(0, Sale::count());
+        $screen->fillForm(['product_id' => $product->id, 'quantity' => 2, 'discount' => 1], 'saleForm')
             ->call('addItem')->assertHasNoErrors();
         $sale = $screen->instance()->sale;
+        $this->assertNotNull($sale);
         $this->assertSame('19.00', $sale->fresh()->total);
         $screen->call('removeItem', $sale->items()->firstOrFail()->id);
         $this->assertSame('0.00', $sale->fresh()->total);
@@ -402,6 +417,25 @@ class SalesStockIntegrityTest extends TestCase
         $this->assertSame('confirmed', $sale->fresh()->status);
         $this->assertSame(Sale::PAYMENT_PAID, $sale->fresh()->payment_status);
         $this->assertSame(8, (int) $product->fresh()->stock);
+        $this->assertNull($screen->instance()->sale);
+        $this->assertSame(0, Sale::query()->where('status', 'draft')->count());
+    }
+
+    public function test_pdv_resumes_draft_with_items_and_discards_empty_ones(): void
+    {
+        $product = $this->product();
+        $empty = Sale::create(['user_id' => auth()->id()]);
+        $withItems = $this->sale($product);
+        $resolved = app(SaleDraftService::class)->resolveForOperator((int) auth()->id());
+        $this->assertTrue($empty->fresh()->trashed());
+        $this->assertSame($withItems->id, $resolved?->id);
+
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+        $screen = \Livewire\Livewire::test(\App\Filament\Pages\StartSale::class);
+        $this->assertSame($withItems->id, $screen->instance()->sale?->id);
+        $screen->call('discardDraft')->assertHasNoErrors();
+        $this->assertNull($screen->instance()->sale);
+        $this->assertSoftDeleted($withItems);
     }
 
     public function test_bulk_delete_preserves_confirmed_and_canceled_sales(): void
@@ -501,6 +535,7 @@ class SalesStockIntegrityTest extends TestCase
 
     public function test_confirm_with_payment_records_cash_change_and_marks_paid(): void
     {
+        $this->openCash();
         $product = $this->product();
         $sale = $this->sale($product);
         app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
@@ -521,6 +556,7 @@ class SalesStockIntegrityTest extends TestCase
 
     public function test_split_payment_must_equal_total_and_rejects_shortfall(): void
     {
+        $this->openCash();
         $product = $this->product();
         $sale = $this->sale($product);
         $this->rejects(fn () => app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
@@ -539,6 +575,7 @@ class SalesStockIntegrityTest extends TestCase
 
     public function test_cancel_paid_sale_refunds_and_returns_stock(): void
     {
+        $this->openCash();
         $product = $this->product();
         $sale = $this->sale($product);
         app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
@@ -555,6 +592,7 @@ class SalesStockIntegrityTest extends TestCase
 
     public function test_recording_payment_twice_is_rejected_and_unpaid_is_excluded_from_revenue(): void
     {
+        $this->openCash();
         $product = $this->product();
         $paid = $this->sale($product);
         app(ConfirmSaleWithPaymentService::class)->confirm($paid, [['method' => 'other', 'amount' => 20]]);
@@ -567,5 +605,82 @@ class SalesStockIntegrityTest extends TestCase
         $report = app(SalesReportService::class)->build(['status' => 'confirmed', 'payment_status' => Sale::PAYMENT_PAID], 50);
         $this->assertSame(1, $report['totals']['sales']);
         $this->assertSame(20.0, $report['totals']['revenue']);
+    }
+
+    public function test_pdv_confirm_requires_open_cash_session(): void
+    {
+        $product = $this->product();
+        $sale = $this->sale($product);
+        $this->rejects(fn () => app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
+            ['method' => 'cash', 'amount' => 20, 'amount_tendered' => 20],
+        ]));
+        $this->assertSame('draft', $sale->fresh()->status);
+        $this->assertSame(10, (int) $product->fresh()->stock);
+    }
+
+    public function test_cash_session_open_movement_close_and_expected_balance(): void
+    {
+        $session = app(CashSessionService::class)->open(100, 'Abertura');
+        $this->rejects(fn () => app(CashSessionService::class)->open(50));
+
+        $product = $this->product();
+        $sale = $this->sale($product);
+        app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
+            ['method' => 'cash', 'amount' => 20, 'amount_tendered' => 20],
+        ]);
+        $this->assertDatabaseHas('sale_payments', [
+            'sale_id' => $sale->id,
+            'cash_session_id' => $session->id,
+            'method' => 'cash',
+            'type' => 'payment',
+        ]);
+
+        app(CashSessionService::class)->addMovement($session, 'out', 30, 'Sangria parcial');
+        app(CashSessionService::class)->addMovement($session, 'in', 10, 'Suprimento');
+        $this->assertSame(100.0, app(CashSessionService::class)->expectedCash($session->fresh()));
+
+        $closed = app(CashSessionService::class)->close($session->fresh(), 95, 'Falta 5');
+        $this->assertSame('closed', $closed->status);
+        $this->assertSame('100.00', $closed->expected_cash);
+        $this->assertSame('95.00', $closed->counted_cash);
+        $this->assertSame('-5.00', $closed->difference);
+        $this->assertNull(app(CashSessionService::class)->currentOpen());
+    }
+
+    public function test_chatbot_checkout_does_not_require_cash_session(): void
+    {
+        $product = $this->product();
+        $this->cart($product);
+        $order = app(ChatbotCheckoutService::class)->finalize('test-session');
+        $sale = Sale::findOrFail($order['sale_id']);
+        $this->assertSame('confirmed', $sale->status);
+        $this->assertSame(Sale::PAYMENT_UNPAID, $sale->payment_status);
+        $this->assertNull(app(CashSessionService::class)->currentOpen());
+    }
+
+    public function test_sale_receipt_page_and_pdf_for_confirmed_sale(): void
+    {
+        $this->openCash();
+        $product = $this->product();
+        $sale = $this->sale($product);
+        app(ConfirmSaleWithPaymentService::class)->confirm($sale, [
+            ['method' => 'cash', 'amount' => 20, 'amount_tendered' => 50],
+        ]);
+
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+        \Livewire\Livewire::test(\App\Filament\Pages\SaleReceipt::class, ['sale' => $sale->fresh()])
+            ->assertSuccessful()
+            ->assertSee('Não é documento fiscal', false)
+            ->assertSee('Dinheiro', false)
+            ->assertSee('R$ 30,00', false)
+            ->call('downloadPdf')
+            ->assertFileDownloaded();
+    }
+
+    public function test_sale_receipt_rejects_draft_sale(): void
+    {
+        $sale = $this->sale($this->product());
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+        $this->get(\App\Filament\Pages\SaleReceipt::getUrl(['sale' => $sale]))->assertNotFound();
     }
 }

@@ -9,11 +9,37 @@
     <div class="pdv-header">
         <div class="pdv-sale-id">
             <span class="pdv-status-dot" aria-hidden="true"></span>
-            <strong>Venda #{{ str_pad((string) ($sale?->id ?? 0), 4, '0', STR_PAD_LEFT) }}</strong>
-            <span class="pdv-draft">Em edição</span>
+            @if ($sale)
+                <strong>Venda #{{ str_pad((string) $sale->id, 4, '0', STR_PAD_LEFT) }}</strong>
+                <span class="pdv-draft">Em edição</span>
+            @else
+                <strong>Nova venda</strong>
+                <span class="pdv-draft">Sem rascunho ainda</span>
+            @endif
         </div>
-        <span class="pdv-operator" title="{{ auth()->user()?->name }}">{{ auth()->user()?->name }}</span>
+        <div class="pdv-header-actions">
+            @if ($sale)
+                <button
+                    type="button"
+                    class="pdv-discard"
+                    wire:click="discardDraft"
+                    wire:confirm="Descartar este rascunho? Itens não confirmados serão removidos."
+                    wire:loading.attr="disabled"
+                    wire:target="discardDraft"
+                >
+                    Descartar
+                </button>
+            @endif
+            <span class="pdv-operator" title="{{ auth()->user()?->name }}">{{ auth()->user()?->name }}</span>
+        </div>
     </div>
+
+    @if (! $this->cashSessionOpen)
+        <div class="pdv-cash-alert" role="status">
+            <strong>Caixa fechado.</strong>
+            Abra o caixa em <a href="{{ \App\Filament\Pages\CashRegister::getUrl() }}">Vendas → Caixa</a> antes de confirmar e receber.
+        </div>
+    @endif
 
     <div class="pdv-workspace">
         <div class="pdv-main">
@@ -173,14 +199,20 @@
                     wire:click="confirmSale"
                     wire:loading.attr="disabled"
                     wire:target="addItem,confirmSale,removeItem"
-                    :disabled="$saleItems->isEmpty()"
+                    :disabled="$saleItems->isEmpty() || ! $this->cashSessionOpen"
                     icon="heroicon-m-check"
                     class="pdv-confirm-button"
                 >
                     <span wire:loading.remove wire:target="confirmSale">Confirmar e receber</span>
                     <span wire:loading wire:target="confirmSale">Confirmando…</span>
                 </x-filament::button>
-                <p class="pdv-confirm-note">Registra a venda, o recebimento e a baixa de estoque.</p>
+                <p class="pdv-confirm-note">
+                    @if ($this->cashSessionOpen)
+                        Registra a venda, o recebimento e a baixa de estoque.
+                    @else
+                        Confirmação bloqueada até abrir o caixa.
+                    @endif
+                </p>
             </div>
         </aside>
     </div>

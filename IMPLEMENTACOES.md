@@ -64,19 +64,19 @@ Entrega e validação desta etapa: `docs/VALIDACAO-VENDAS-ESTOQUE.md`. Saldos hi
 - [x] Restringir criação, edição e remoção de itens a rascunhos, com validação no servidor e recálculo do total.
 - [x] Impedir exclusão individual/em lote de vendas confirmadas ou canceladas. A ação explícita de cancelamento devolve estoque; integração financeira permanece na próxima etapa.
 - [x] Preservar autor e origem nos movimentos de confirmação/correção e gravar motivo, responsável e data do cancelamento na venda. Operações anônimas do chatbot mantêm origem identificada e autor nulo.
-- [ ] Revisar o fluxo de rascunhos: abrir a tela de venda já cria registro; definir retomada e descarte dos abandonados.
+- [x] Revisar o fluxo de rascunhos: PDV retoma rascunho com itens, cria só no primeiro item/CPF, limpa vazios e permite descartar (31/10/2026).
 
 **Pronto quando:** caixa e chatbot produzem o mesmo resultado para a mesma operação; toda mudança de saldo tem origem rastreável; repetir uma confirmação/cancelamento não repete seus efeitos.
 
 ## 4. Prioridade 1 — completar a venda e o recebimento
 
-Entrega da fatia 1 (recebimento manual): `docs/VALIDACAO-RECEBIMENTO.md`. Entrega e status de pagamento ficam para etapas seguintes; abertura/fechamento de caixa também.
+Entrega da fatia 1 (recebimento manual): `docs/VALIDACAO-RECEBIMENTO.md`. Entrega de caixa: `docs/VALIDACAO-CAIXA.md`. Comprovante: `docs/VALIDACAO-COMPROVANTE.md`. Status de entrega/fulfillment fica para etapas seguintes.
 
 - [x] Separar situação da venda (estoque) da situação do pagamento (`payment_status`). Entrega ainda não modelada.
 - [x] Implementar registro de recebimentos: dinheiro, Pix, cartão e outros (manual, sem gateway).
 - [x] Tratar valor recebido e troco em dinheiro; permitir dividir meios desde que a soma cubra 100% do total. Pagamento parcial fica para depois.
-- [ ] Implementar abertura e fechamento de caixa, saldo inicial, entradas/retiradas justificadas e divergências.
-- [ ] Disponibilizar comprovante da operação, distinguindo-o de documento fiscal.
+- [x] Implementar abertura e fechamento de caixa, saldo inicial, entradas/retiradas justificadas e divergências (31/10/2026).
+- [x] Disponibilizar comprovante da operação, distinguindo-o de documento fiscal (31/10/2026).
 - [x] Integrar cancelamento ao estorno/reembolso do recebimento registrado (estorno total automático na mesma transação).
 - [ ] Implementar troca e devolução parcial, com destino do produto devolvido e efeito financeiro explícitos.
 - [ ] Unificar os caminhos de criação de venda e as regras de identificação de cliente/vendedor.

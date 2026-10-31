@@ -4,6 +4,7 @@ namespace App\Services\Sales;
 
 use App\Models\Sale;
 use App\Models\SalePayment;
+use App\Services\Cash\CashSessionService;
 use App\Services\Products\ProductPricingService;
 use Illuminate\Support\Facades\DB;
 
@@ -26,6 +27,7 @@ class RecordSalePaymentService
                 throw new \DomainException('Informe ao menos um recebimento.');
             }
 
+            $sessionId = app(CashSessionService::class)->currentOpen()?->id;
             $pricing = app(ProductPricingService::class);
             $totalCents = $pricing->cents($locked->total);
             $sumCents = 0;
@@ -56,6 +58,7 @@ class RecordSalePaymentService
                 $sumCents += $amountCents;
                 SalePayment::query()->create([
                     'sale_id' => $locked->id,
+                    'cash_session_id' => $sessionId,
                     'type' => 'payment',
                     'method' => $method,
                     'amount' => $amountCents / 100,
@@ -86,10 +89,12 @@ class RecordSalePaymentService
                 return;
             }
 
+            $sessionId = app(CashSessionService::class)->currentOpen()?->id;
             $pricing = app(ProductPricingService::class);
             foreach ($locked->payments->where('type', 'payment') as $payment) {
                 SalePayment::query()->create([
                     'sale_id' => $locked->id,
+                    'cash_session_id' => $sessionId ?? $payment->cash_session_id,
                     'type' => 'refund',
                     'method' => $payment->method,
                     'amount' => $pricing->cents($payment->amount) / 100,
