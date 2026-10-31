@@ -17,6 +17,7 @@ class AclSeeder extends Seeder
 
         $this->call(SalesStockPermissionsSeeder::class);
         $this->call(CashRegisterPermissionsSeeder::class);
+        $this->call(ChatOrdersPermissionsSeeder::class);
 
         $permissions = [
 

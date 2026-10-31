@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class Sale extends Model
 {
@@ -25,13 +26,73 @@ class Sale extends Model
         self::PAYMENT_REFUNDED => 'Estornado',
     ];
 
-    protected $fillable = ['client_id', 'user_id', 'total', 'status', 'origin', 'checkout_key', 'payment_status'];
+    public const FULFILLMENT_PICKUP = 'pickup';
 
-    protected $casts = ['total' => 'decimal:2', 'canceled_at' => 'datetime'];
+    public const FULFILLMENT_DELIVERY = 'delivery';
+
+    public const FULFILLMENT_TYPE_LABELS = [
+        self::FULFILLMENT_PICKUP => 'Retirada',
+        self::FULFILLMENT_DELIVERY => 'Entrega',
+    ];
+
+    public const FULFILLMENT_RECEIVED = 'received';
+
+    public const FULFILLMENT_PREPARING = 'preparing';
+
+    public const FULFILLMENT_READY = 'ready';
+
+    public const FULFILLMENT_COMPLETED = 'completed';
+
+    public const FULFILLMENT_CANCELED = 'canceled';
+
+    public const FULFILLMENT_STATUS_LABELS = [
+        self::FULFILLMENT_RECEIVED => 'Recebido pela loja',
+        self::FULFILLMENT_PREPARING => 'Em preparo',
+        self::FULFILLMENT_READY => 'Pronto',
+        self::FULFILLMENT_COMPLETED => 'Concluído',
+        self::FULFILLMENT_CANCELED => 'Atendimento cancelado',
+    ];
+
+    private const FULFILLMENT_FIELDS = [
+        'buyer_name',
+        'buyer_phone',
+        'fulfillment_type',
+        'delivery_address',
+        'fulfillment_status',
+        'needs_human_help',
+        'human_help_note',
+        'public_token',
+    ];
+
+    protected $fillable = [
+        'client_id',
+        'user_id',
+        'buyer_name',
+        'buyer_phone',
+        'total',
+        'status',
+        'origin',
+        'checkout_key',
+        'payment_status',
+        'fulfillment_type',
+        'delivery_address',
+        'fulfillment_status',
+        'needs_human_help',
+        'human_help_note',
+        'public_token',
+    ];
+
+    protected $casts = [
+        'total' => 'decimal:2',
+        'canceled_at' => 'datetime',
+        'needs_human_help' => 'boolean',
+    ];
 
     private bool $lifecycleChange = false;
 
     private bool $paymentChange = false;
+
+    private bool $fulfillmentChange = false;
 
     public function client(): BelongsTo
     {
@@ -56,6 +117,11 @@ class Sale extends Model
     public function isPaid(): bool
     {
         return $this->payment_status === self::PAYMENT_PAID;
+    }
+
+    public function orderNumber(): string
+    {
+        return '#'.str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
     }
 
     public function amountPaidCents(): int
@@ -100,6 +166,50 @@ class Sale extends Model
         }
     }
 
+    /**
+     * @param  array<string,mixed>  $attributes
+     */
+    public function updateFulfillment(array $attributes): void
+    {
+        $payload = collect($attributes)->only(self::FULFILLMENT_FIELDS)->all();
+        if ($payload === []) {
+            throw new \DomainException('Nenhum campo de atendimento informado.');
+        }
+        if (array_key_exists('fulfillment_type', $payload)
+            && $payload['fulfillment_type'] !== null
+            && ! array_key_exists($payload['fulfillment_type'], self::FULFILLMENT_TYPE_LABELS)) {
+            throw new \DomainException('Tipo de atendimento inválido.');
+        }
+        if (array_key_exists('fulfillment_status', $payload)
+            && $payload['fulfillment_status'] !== null
+            && ! array_key_exists($payload['fulfillment_status'], self::FULFILLMENT_STATUS_LABELS)) {
+            throw new \DomainException('Status de atendimento inválido.');
+        }
+        if (($payload['fulfillment_type'] ?? $this->fulfillment_type) === self::FULFILLMENT_DELIVERY) {
+            $address = $payload['delivery_address'] ?? $this->delivery_address;
+            if (trim((string) $address) === '') {
+                throw new \DomainException('Informe o endereço de entrega.');
+            }
+        }
+
+        $this->fulfillmentChange = true;
+        try {
+            $this->forceFill($payload)->save();
+        } finally {
+            $this->fulfillmentChange = false;
+        }
+    }
+
+    public static function newPublicToken(): string
+    {
+        return Str::lower(Str::random(32));
+    }
+
+    public static function normalizePhone(string $phone): string
+    {
+        return preg_replace('/\D+/', '', $phone) ?? '';
+    }
+
     public function save(array $options = [])
     {
         return DB::transaction(function () use ($options) {
@@ -112,6 +222,11 @@ class Sale extends Model
                     $dirty = collect($this->getDirty())->except(['payment_status', 'updated_at']);
                     if ($dirty->isNotEmpty()) {
                         throw new \DomainException('Na atualização de pagamento só o status de pagamento pode mudar.');
+                    }
+                } elseif ($this->fulfillmentChange) {
+                    $dirty = collect($this->getDirty())->except([...self::FULFILLMENT_FIELDS, 'updated_at']);
+                    if ($dirty->isNotEmpty()) {
+                        throw new \DomainException('Na atualização de atendimento só os campos de fulfillment/contato/handoff podem mudar.');
                     }
                 } elseif (! $this->lifecycleChange && ($current->status !== 'draft' || $this->isDirty('status'))) {
                     throw new \DomainException('Vendas concluídas são imutáveis. Use a operação de cancelamento.');
@@ -143,6 +258,7 @@ class Sale extends Model
             $sale->status = 'draft';
             $sale->total = 0;
             $sale->payment_status = $sale->payment_status ?: self::PAYMENT_UNPAID;
+            $sale->needs_human_help = (bool) ($sale->needs_human_help ?? false);
         });
     }
 }

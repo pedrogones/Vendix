@@ -127,7 +127,12 @@ class SalesConcurrencyTest extends TestCase
     {
         $product = $this->product();
         app(CartService::class)->addItem('concurrent-checkout', $product, 2, []);
-        $results = $this->race(fn () => app(ChatbotCheckoutService::class)->finalize('concurrent-checkout'));
+        $checkout = [
+            'buyer_name' => 'Cliente Teste',
+            'buyer_phone' => '11999998888',
+            'fulfillment_type' => 'pickup',
+        ];
+        $results = $this->race(fn () => app(ChatbotCheckoutService::class)->finalize('concurrent-checkout', $checkout));
         $this->assertSame(['ok', 'ok'], $results);
         $this->assertSame(1, Sale::count());
         $this->assertSame(8, (int) $product->fresh()->stock);

@@ -62,6 +62,8 @@ class IntentClassifierService
             'order_remove_item',
             'order_summary',
             'order_confirm',
+            'order_status',
+            'human_help',
             'delivery_info',
             'payment_info',
             'fallback',
@@ -226,6 +228,14 @@ class IntentClassifierService
 
         if (Str::contains($normalized, ['promocao', 'promocoes', 'oferta', 'ofertas', 'desconto'])) {
             return $this->result('promotions_lookup', $productName, $quantity, 0.76, 'rules');
+        }
+
+        if (Str::contains($normalized, ['atendente', 'humano', 'ajuda da loja', 'falar com a loja', 'atendimento humano'])) {
+            return $this->result('human_help', $productName, $quantity, 0.88, 'rules');
+        }
+
+        if (Str::contains($normalized, ['status do pedido', 'andamento do pedido', 'onde esta meu pedido', 'consultar pedido', 'rastrear pedido'])) {
+            return $this->result('order_status', $productName, $quantity, 0.86, 'rules');
         }
 
         if (Str::contains($normalized, ['entrega', 'delivery', 'frete'])) {

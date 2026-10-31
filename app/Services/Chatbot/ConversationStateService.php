@@ -9,15 +9,7 @@ class ConversationStateService
     private const TTL_MINUTES = 120;
 
     /**
-     * @return array{
-     *     step:string,
-     *     pending_product_id:int|null,
-     *     pending_product_name:string|null,
-     *     pending_candidates:list<int>,
-     *     pending_quantity:int|null,
-     *     pending_action:string|null,
-     *     last_intent:string|null
-     * }
+     * @return array<string,mixed>
      */
     public function get(string $sessionId): array
     {
@@ -32,15 +24,7 @@ class ConversationStateService
 
     /**
      * @param  array<string,mixed>  $changes
-     * @return array{
-     *     step:string,
-     *     pending_product_id:int|null,
-     *     pending_product_name:string|null,
-     *     pending_candidates:list<int>,
-     *     pending_quantity:int|null,
-     *     pending_action:string|null,
-     *     last_intent:string|null
-     * }
+     * @return array<string,mixed>
      */
     public function update(string $sessionId, array $changes): array
     {
@@ -57,15 +41,7 @@ class ConversationStateService
     }
 
     /**
-     * @return array{
-     *     step:string,
-     *     pending_product_id:int|null,
-     *     pending_product_name:string|null,
-     *     pending_candidates:list<int>,
-     *     pending_quantity:int|null,
-     *     pending_action:string|null,
-     *     last_intent:string|null
-     * }
+     * @return array<string,mixed>
      */
     public function clearPending(string $sessionId): array
     {
@@ -76,6 +52,27 @@ class ConversationStateService
             'pending_candidates' => [],
             'pending_quantity' => null,
             'pending_action' => null,
+            'status_lookup_order' => null,
+        ]);
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    public function clearCheckoutDraft(string $sessionId): array
+    {
+        return $this->update($sessionId, [
+            'step' => 'idle',
+            'pending_product_id' => null,
+            'pending_product_name' => null,
+            'pending_candidates' => [],
+            'pending_quantity' => null,
+            'pending_action' => null,
+            'buyer_name' => null,
+            'buyer_phone' => null,
+            'fulfillment_type' => null,
+            'delivery_address' => null,
+            'status_lookup_order' => null,
         ]);
     }
 
@@ -85,15 +82,7 @@ class ConversationStateService
     }
 
     /**
-     * @return array{
-     *     step:string,
-     *     pending_product_id:int|null,
-     *     pending_product_name:string|null,
-     *     pending_candidates:list<int>,
-     *     pending_quantity:int|null,
-     *     pending_action:string|null,
-     *     last_intent:string|null
-     * }
+     * @return array<string,mixed>
      */
     private function defaultState(): array
     {
@@ -105,6 +94,13 @@ class ConversationStateService
             'pending_quantity' => null,
             'pending_action' => null,
             'last_intent' => null,
+            'buyer_name' => null,
+            'buyer_phone' => null,
+            'fulfillment_type' => null,
+            'delivery_address' => null,
+            'needs_human_help' => false,
+            'human_help_note' => null,
+            'status_lookup_order' => null,
         ];
     }
 }

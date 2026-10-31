@@ -3,8 +3,10 @@
 namespace App\Services\Chatbot;
 
 use App\Models\Product;
+use App\Models\Sale;
 use App\Services\Cart\CartService;
 use App\Services\Sales\ChatbotCheckoutService;
+use App\Services\Sales\ChatOrderLookupService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -41,13 +43,26 @@ class ChatbotService
 
         $state = $this->stateService->get($sessionId);
 
-        if (in_array($state['step'], ['awaiting_quantity', 'awaiting_confirmation', 'awaiting_product_choice'], true)
-            && $this->isCancelNavigation($message)) {
-            $this->stateService->clearPending($sessionId);
+        $checkoutSteps = [
+            'awaiting_quantity',
+            'awaiting_confirmation',
+            'awaiting_product_choice',
+            'awaiting_contact',
+            'awaiting_fulfillment_type',
+            'awaiting_delivery_address',
+            'awaiting_status_lookup',
+        ];
+
+        if (in_array($state['step'], $checkoutSteps, true) && $this->isCancelNavigation($message)) {
+            if (in_array($state['step'], ['awaiting_contact', 'awaiting_fulfillment_type', 'awaiting_delivery_address', 'awaiting_confirmation', 'awaiting_status_lookup'], true)) {
+                $this->stateService->clearCheckoutDraft($sessionId);
+            } else {
+                $this->stateService->clearPending($sessionId);
+            }
 
             return $this->buildResponse(
                 'step_canceled',
-                'Ok, voltei ao menu. Posso ajudar com consulta de produto, promocoes, montar pedido, entrega e pagamento.',
+                'Ok, voltei ao menu. Posso ajudar com consulta de produto, promocoes, montar pedido, status, entrega e pagamento.',
                 $sessionId
             );
         }
@@ -60,8 +75,24 @@ class ChatbotService
             return $this->handleAwaitingQuantity($sessionId, $message, $state);
         }
 
+        if ($state['step'] === 'awaiting_contact') {
+            return $this->handleAwaitingContact($sessionId, $message, $state);
+        }
+
+        if ($state['step'] === 'awaiting_fulfillment_type') {
+            return $this->handleAwaitingFulfillmentType($sessionId, $message, $state);
+        }
+
+        if ($state['step'] === 'awaiting_delivery_address') {
+            return $this->handleAwaitingDeliveryAddress($sessionId, $message, $state);
+        }
+
         if ($state['step'] === 'awaiting_confirmation') {
             return $this->handleAwaitingConfirmation($sessionId, $message, $state);
+        }
+
+        if ($state['step'] === 'awaiting_status_lookup') {
+            return $this->handleAwaitingStatusLookup($sessionId, $message, $state);
         }
 
         $classification = $this->intentClassifier->classify($message, $state, $sessionId);
@@ -88,11 +119,13 @@ class ChatbotService
             'order_remove_item' => $this->handleOrderRemoveItem($sessionId, $message, $classification['entities']),
             'order_summary' => $this->handleOrderSummary($sessionId),
             'order_confirm' => $this->handleOrderConfirm($sessionId),
+            'order_status' => $this->handleOrderStatusStart($sessionId),
+            'human_help' => $this->handleHumanHelp($sessionId),
             'delivery_info' => $this->handleDeliveryInfo($sessionId),
             'payment_info' => $this->handlePaymentInfo($sessionId),
             default => $this->buildResponse(
                 'fallback',
-                'Posso te ajudar com: consulta de produto, promocoes, montar pedido, entrega e pagamento.',
+                'Posso te ajudar com: consulta de produto, promocoes, montar pedido, status do pedido, atendimento humano, entrega e pagamento.',
                 $sessionId,
                 ['classifier_source' => $classification['source']]
             ),
@@ -488,13 +521,139 @@ class ChatbotService
             );
         }
 
+        $state = $this->stateService->get($sessionId);
+        if (filled($state['buyer_name']) && filled($state['buyer_phone']) && filled($state['fulfillment_type'])) {
+            if ($state['fulfillment_type'] === Sale::FULFILLMENT_DELIVERY && blank($state['delivery_address'])) {
+                $this->stateService->update($sessionId, ['step' => 'awaiting_delivery_address']);
+
+                return $this->buildResponse(
+                    'awaiting_delivery_address',
+                    'Para entrega, informe o endereco completo (rua, numero, bairro). Digite voltar para cancelar.',
+                    $sessionId
+                );
+            }
+
+            return $this->promptFinalConfirmation($sessionId);
+        }
+
+        $this->stateService->update($sessionId, ['step' => 'awaiting_contact']);
+
+        return $this->buildResponse(
+            'awaiting_contact',
+            $this->buildCartSummaryText($cart).' Para concluir, informe seu nome e telefone com DDD (ex.: Maria 11999998888). Digite voltar para cancelar.',
+            $sessionId
+        );
+    }
+
+    /**
+     * @param  array<string,mixed>  $state
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function handleAwaitingContact(string $sessionId, string $message, array $state): array
+    {
+        [$name, $phone] = $this->parseContact($message);
+        if ($name === null || $phone === null) {
+            return $this->buildResponse(
+                'awaiting_contact',
+                'Nao entendi. Envie no formato: Nome 11999998888 (telefone com DDD).',
+                $sessionId
+            );
+        }
+
         $this->stateService->update($sessionId, [
-            'step' => 'awaiting_confirmation',
+            'buyer_name' => $name,
+            'buyer_phone' => $phone,
+            'step' => 'awaiting_fulfillment_type',
         ]);
 
         return $this->buildResponse(
+            'awaiting_fulfillment_type',
+            'Otimo, '.$name.'. Prefere retirada na loja ou entrega? Responda "retirada" ou "entrega".',
+            $sessionId
+        );
+    }
+
+    /**
+     * @param  array<string,mixed>  $state
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function handleAwaitingFulfillmentType(string $sessionId, string $message, array $state): array
+    {
+        $normalized = (string) Str::of($message)->lower()->ascii()->trim();
+        if (Str::contains($normalized, ['retirada', 'buscar', 'retiro', 'loja'])) {
+            $this->stateService->update($sessionId, [
+                'fulfillment_type' => Sale::FULFILLMENT_PICKUP,
+                'delivery_address' => null,
+            ]);
+
+            return $this->promptFinalConfirmation($sessionId);
+        }
+        if (Str::contains($normalized, ['entrega', 'delivery', 'enviar', 'mandar'])) {
+            $this->stateService->update($sessionId, [
+                'fulfillment_type' => Sale::FULFILLMENT_DELIVERY,
+                'step' => 'awaiting_delivery_address',
+            ]);
+
+            return $this->buildResponse(
+                'awaiting_delivery_address',
+                'Informe o endereco completo para entrega (rua, numero, bairro). Digite voltar para cancelar.',
+                $sessionId
+            );
+        }
+
+        return $this->buildResponse(
+            'awaiting_fulfillment_type',
+            'Responda apenas "retirada" ou "entrega".',
+            $sessionId
+        );
+    }
+
+    /**
+     * @param  array<string,mixed>  $state
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function handleAwaitingDeliveryAddress(string $sessionId, string $message, array $state): array
+    {
+        $address = trim($message);
+        if ($address === '' || mb_strlen($address) < 8 || mb_strlen($address) > 255) {
+            return $this->buildResponse(
+                'awaiting_delivery_address',
+                'Endereco invalido. Informe rua, numero e bairro (ate 255 caracteres).',
+                $sessionId
+            );
+        }
+
+        $this->stateService->update($sessionId, [
+            'delivery_address' => $address,
+        ]);
+
+        return $this->promptFinalConfirmation($sessionId);
+    }
+
+    /**
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function promptFinalConfirmation(string $sessionId): array
+    {
+        $state = $this->stateService->get($sessionId);
+        $cart = $this->cartService->get($sessionId);
+        $typeLabel = Sale::FULFILLMENT_TYPE_LABELS[$state['fulfillment_type']] ?? (string) $state['fulfillment_type'];
+        $addressLine = $state['fulfillment_type'] === Sale::FULFILLMENT_DELIVERY
+            ? ' Endereco: '.$state['delivery_address'].'.'
+            : '';
+
+        $this->stateService->update($sessionId, ['step' => 'awaiting_confirmation']);
+
+        return $this->buildResponse(
             'order_confirm',
-            $this->buildCartSummaryText($cart).' Digite SIM para confirmar, NAO para cancelar a confirmacao, ou voltar.',
+            sprintf(
+                '%s Contato: %s (%s). Modalidade: %s.%s Digite SIM para confirmar, NAO para cancelar, ou voltar.',
+                $this->buildCartSummaryText($cart),
+                $state['buyer_name'],
+                $state['buyer_phone'],
+                $typeLabel,
+                $addressLine
+            ),
             $sessionId
         );
     }
@@ -508,17 +667,23 @@ class ChatbotService
         if ($this->isAffirmative($message)) {
             try {
                 $order = $this->checkoutService->finalize($sessionId);
-                $this->stateService->reset($sessionId);
+                $statusUrlHint = url('/pedido/consultar');
 
                 return $this->buildResponse(
                     'order_confirmed',
                     sprintf(
-                        'Pedido confirmado com sucesso! Numero do pedido: %s. Total: %s. O pagamento ainda sera confirmado no atendimento da loja.',
+                        'Pedido confirmado! Numero: %s. Total: %s. Pagamento sera confirmado na loja. Acompanhe em %s com o numero do pedido e o telefone %s.',
                         $order['order_number'],
-                        $this->productRules->formatCurrency((float) $order['total'])
+                        $this->productRules->formatCurrency((float) $order['total']),
+                        $statusUrlHint,
+                        $order['buyer_phone']
                     ),
                     $sessionId,
-                    ['sale_id' => $order['sale_id'], 'order_number' => $order['order_number']]
+                    [
+                        'sale_id' => $order['sale_id'],
+                        'order_number' => $order['order_number'],
+                        'public_token' => $order['public_token'],
+                    ]
                 );
             } catch (\App\Exceptions\CartPriceChangedException $exception) {
                 $this->stateService->update($sessionId, ['step' => 'awaiting_confirmation']);
@@ -547,6 +712,147 @@ class ChatbotService
             $sessionId,
             ['current_step' => $state['step'] ?? 'awaiting_confirmation']
         );
+    }
+
+    /**
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function handleOrderStatusStart(string $sessionId): array
+    {
+        $this->stateService->update($sessionId, [
+            'step' => 'awaiting_status_lookup',
+            'status_lookup_order' => null,
+        ]);
+
+        return $this->buildResponse(
+            'order_status',
+            'Para consultar o andamento, informe o numero do pedido e o telefone usado na compra (ex.: 000123 11999998888).',
+            $sessionId
+        );
+    }
+
+    /**
+     * @param  array<string,mixed>  $state
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function handleAwaitingStatusLookup(string $sessionId, string $message, array $state): array
+    {
+        $digitsOnly = preg_replace('/\D+/', ' ', $message) ?? '';
+        $parts = array_values(array_filter(explode(' ', trim($digitsOnly)), fn (string $part): bool => $part !== ''));
+        if (count($parts) < 2) {
+            return $this->buildResponse(
+                'awaiting_status_lookup',
+                'Nao entendi. Envie no formato: 000123 11999998888.',
+                $sessionId
+            );
+        }
+
+        $orderNumber = $parts[0];
+        $phone = implode('', array_slice($parts, 1));
+        $sale = app(ChatOrderLookupService::class)->findByOrderAndPhone($orderNumber, $phone);
+        $this->stateService->clearPending($sessionId);
+
+        if (! $sale) {
+            return $this->buildResponse(
+                'order_status_not_found',
+                'Nao encontrei esse pedido com o telefone informado. Confira o numero e tente de novo.',
+                $sessionId
+            );
+        }
+
+        return $this->buildResponse(
+            'order_status',
+            $this->formatSaleStatusMessage($sale),
+            $sessionId,
+            ['sale_id' => $sale->id, 'fulfillment_status' => $sale->fulfillment_status]
+        );
+    }
+
+    /**
+     * @return array{intent:string,message:string,meta:array<string,mixed>}
+     */
+    private function handleHumanHelp(string $sessionId): array
+    {
+        $state = $this->stateService->get($sessionId);
+        $cart = $this->cartService->get($sessionId);
+        $note = sprintf(
+            'Handoff %s | step=%s | itens=%d | subtotal=%s | contato=%s %s',
+            now()->format('d/m H:i'),
+            $state['step'] ?? 'idle',
+            $cart['total_items'],
+            $this->productRules->formatCurrency((float) $cart['subtotal']),
+            $state['buyer_name'] ?? '-',
+            $state['buyer_phone'] ?? '-'
+        );
+        $note = mb_substr($note, 0, 255);
+
+        $this->stateService->update($sessionId, [
+            'needs_human_help' => true,
+            'human_help_note' => $note,
+        ]);
+
+        if (filled($state['buyer_phone'])) {
+            $existing = Sale::query()
+                ->where('origin', 'chatbot')
+                ->where('status', 'confirmed')
+                ->where('buyer_phone', Sale::normalizePhone((string) $state['buyer_phone']))
+                ->orderByDesc('id')
+                ->first();
+            if ($existing) {
+                $existing->updateFulfillment([
+                    'needs_human_help' => true,
+                    'human_help_note' => $note,
+                ]);
+            }
+        }
+
+        $phone = env('COMPANY_PHONE', 'telefone nao informado');
+
+        return $this->buildResponse(
+            'human_help',
+            sprintf(
+                'Combinei: a loja foi avisada para te atender com o contexto do seu pedido. Se preferir, ligue para %s. Voce pode continuar o pedido aqui quando quiser.',
+                $phone
+            ),
+            $sessionId,
+            ['needs_human_help' => true]
+        );
+    }
+
+    private function formatSaleStatusMessage(Sale $sale): string
+    {
+        $fulfillment = Sale::FULFILLMENT_STATUS_LABELS[$sale->fulfillment_status] ?? (string) $sale->fulfillment_status;
+        $type = Sale::FULFILLMENT_TYPE_LABELS[$sale->fulfillment_type] ?? (string) $sale->fulfillment_type;
+        $payment = Sale::PAYMENT_STATUS_LABELS[$sale->payment_status] ?? (string) $sale->payment_status;
+        $help = $sale->needs_human_help ? ' Atendimento humano solicitado.' : '';
+
+        return sprintf(
+            'Pedido %s: atendimento "%s" (%s). Pagamento: %s. Total %s.%s',
+            $sale->orderNumber(),
+            $fulfillment,
+            $type,
+            $payment,
+            $this->productRules->formatCurrency((float) $sale->total),
+            $help
+        );
+    }
+
+    /**
+     * @return array{0:?string,1:?string}
+     */
+    private function parseContact(string $message): array
+    {
+        $message = trim(preg_replace('/\s+/', ' ', $message) ?? '');
+        if (preg_match('/^(.*?)(\+?\d[\d\s().-]{8,}\d)\s*$/u', $message, $matches) !== 1) {
+            return [null, null];
+        }
+        $name = trim($matches[1], " \t\n\r\0\x0B,.-");
+        $phone = Sale::normalizePhone($matches[2]);
+        if ($name === '' || mb_strlen($name) > 120 || strlen($phone) < 10 || strlen($phone) > 13) {
+            return [null, null];
+        }
+
+        return [$name, $phone];
     }
 
     /**

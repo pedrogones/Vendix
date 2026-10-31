@@ -76,6 +76,18 @@ class SalesStockIntegrityTest extends TestCase
         return app(CartService::class)->addItem($session, $product, $quantity, []);
     }
 
+    /**
+     * @return array<string,mixed>
+     */
+    private function chatbotCheckout(string $session = 'test-session'): array
+    {
+        return app(ChatbotCheckoutService::class)->finalize($session, [
+            'buyer_name' => 'Cliente Teste',
+            'buyer_phone' => '11999998888',
+            'fulfillment_type' => 'pickup',
+        ]);
+    }
+
     private function rejects(callable $callback, string $exception = \DomainException::class): void
     {
         try {
@@ -234,20 +246,20 @@ class SalesStockIntegrityTest extends TestCase
     {
         $product = $this->product(10, ['is_on_sale' => true, 'promotional_price' => 8]);
         $cart = $this->cart($product);
-        $order = app(ChatbotCheckoutService::class)->finalize('test-session');
+        $order = $this->chatbotCheckout();
         $this->assertSame(16.0, $order['total']);
         $this->assertSame(8, (int) $product->fresh()->stock);
         $this->assertDatabaseHas('stock_movements', ['reason' => 'sale', 'quantity' => 2, 'reference_id' => $order['sale_id']]);
         $this->assertDatabaseHas('sale_items', ['sale_id' => $order['sale_id'], 'unit_price' => 8, 'discount' => 0, 'total_price' => 16]);
-        $this->assertDatabaseHas('sales', ['id' => $order['sale_id'], 'status' => 'confirmed', 'payment_status' => Sale::PAYMENT_UNPAID]);
-        $this->assertSame($order, app(ChatbotCheckoutService::class)->finalize('test-session'));
+        $this->assertDatabaseHas('sales', ['id' => $order['sale_id'], 'status' => 'confirmed', 'payment_status' => Sale::PAYMENT_UNPAID, 'buyer_phone' => '11999998888']);
+        $this->assertSame($order, $this->chatbotCheckout());
         // Simulate a process failure after commit, before cache completion.
         Cache::put('chatbot:cart:test-session', $cart, 60);
-        $this->assertSame($order, app(ChatbotCheckoutService::class)->finalize('test-session'));
+        $this->assertSame($order, $this->chatbotCheckout());
         $this->assertSame(1, Sale::count());
         $this->assertSame(1, StockMovement::where('reason', 'sale')->count());
         $this->cart($product, 1);
-        $next = app(ChatbotCheckoutService::class)->finalize('test-session');
+        $next = $this->chatbotCheckout();
         $this->assertNotSame($order['sale_id'], $next['sale_id']);
     }
 
@@ -256,13 +268,13 @@ class SalesStockIntegrityTest extends TestCase
         $product = $this->product();
         $cart = $this->cart($product);
         $product->update(['price' => 12]);
-        $this->rejects(fn () => app(ChatbotCheckoutService::class)->finalize('test-session'), CartPriceChangedException::class);
+        $this->rejects(fn () => $this->chatbotCheckout(), CartPriceChangedException::class);
         $this->assertSame(0, Sale::count());
         $this->assertSame(10, (int) $product->fresh()->stock);
         $updated = app(CartService::class)->get('test-session');
         $this->assertSame(24.0, $updated['subtotal']);
         $this->assertNotSame($cart['checkout_key'], $updated['checkout_key']);
-        $this->assertSame(24.0, app(ChatbotCheckoutService::class)->finalize('test-session')['total']);
+        $this->assertSame(24.0, $this->chatbotCheckout()['total']);
     }
 
     public function test_chatbot_failure_preserves_cart_without_partial_effects(): void
@@ -270,7 +282,7 @@ class SalesStockIntegrityTest extends TestCase
         $product = $this->product();
         $this->cart($product);
         app(StockService::class)->count($product, 1, 'Inventário');
-        $this->rejects(fn () => app(ChatbotCheckoutService::class)->finalize('test-session'));
+        $this->rejects(fn () => $this->chatbotCheckout());
         $this->assertSame(0, Sale::count());
         $this->assertSame(2, app(CartService::class)->get('test-session')['total_items']);
         $this->assertSame(0, StockMovement::where('reason', 'sale')->count());
@@ -361,7 +373,7 @@ class SalesStockIntegrityTest extends TestCase
         $product = $this->product();
         $this->cart($product);
         auth()->logout();
-        $order = app(ChatbotCheckoutService::class)->finalize('test-session');
+        $order = $this->chatbotCheckout();
         $this->assertDatabaseHas('stock_movements', ['reference_id' => $order['sale_id'], 'reason' => 'sale', 'user_id' => null]);
     }
 
@@ -460,7 +472,12 @@ class SalesStockIntegrityTest extends TestCase
     {
         $product = $this->product();
         $this->cart($product);
-        app(\App\Services\Chatbot\ConversationStateService::class)->update('test-session', ['step' => 'awaiting_confirmation']);
+        app(\App\Services\Chatbot\ConversationStateService::class)->update('test-session', [
+            'step' => 'awaiting_confirmation',
+            'buyer_name' => 'Cliente Teste',
+            'buyer_phone' => '11999998888',
+            'fulfillment_type' => 'pickup',
+        ]);
         $product->update(['price' => 12]);
         $response = app(\App\Services\Chatbot\ChatbotService::class)->handle('test-session', 'sim');
         $this->assertSame('order_price_changed', $response['intent']);
@@ -487,13 +504,13 @@ class SalesStockIntegrityTest extends TestCase
     {
         $product = $this->product();
         $this->cart($product);
-        $order = app(ChatbotCheckoutService::class)->finalize('test-session');
+        $order = $this->chatbotCheckout();
         $sale = Sale::findOrFail($order['sale_id']);
         $reason = str_repeat('x', 255);
         app(CancelSaleService::class)->cancel($sale, $reason);
         $this->assertSame($reason, $sale->fresh()->cancellation_reason);
         $this->assertLessThanOrEqual(255, mb_strlen(StockMovement::where('reason', 'return')->firstOrFail()->reference));
-        $this->rejects(fn () => app(ChatbotCheckoutService::class)->finalize('test-session'));
+        $this->rejects(fn () => $this->chatbotCheckout());
         $this->assertSame(1, Sale::count());
         $this->assertSame(10, (int) $product->fresh()->stock);
     }
@@ -507,7 +524,7 @@ class SalesStockIntegrityTest extends TestCase
         $firstRead = app(CartService::class)->get('test-session');
         $this->assertNotEmpty($firstRead['checkout_key']);
         $this->assertSame($firstRead['checkout_key'], app(CartService::class)->get('test-session')['checkout_key']);
-        $order = app(ChatbotCheckoutService::class)->finalize('test-session');
+        $order = $this->chatbotCheckout();
         $this->assertSame(20.0, $order['total']);
         $this->assertSame(8, (int) $product->fresh()->stock);
     }
@@ -651,7 +668,7 @@ class SalesStockIntegrityTest extends TestCase
     {
         $product = $this->product();
         $this->cart($product);
-        $order = app(ChatbotCheckoutService::class)->finalize('test-session');
+        $order = $this->chatbotCheckout();
         $sale = Sale::findOrFail($order['sale_id']);
         $this->assertSame('confirmed', $sale->status);
         $this->assertSame(Sale::PAYMENT_UNPAID, $sale->payment_status);

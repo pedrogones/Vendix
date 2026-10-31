@@ -30,5 +30,10 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute((int) config('services.chatbot.rate_limit_per_minute', 30))->by($key);
         });
+
+        RateLimiter::for('order-status', function (Request $request) {
+            return Limit::perMinute((int) config('services.chatbot.order_status_rate_limit_per_minute', 20))
+                ->by($request->ip());
+        });
     }
 }

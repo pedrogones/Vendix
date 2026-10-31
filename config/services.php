@@ -43,6 +43,7 @@ return [
 
     'chatbot' => [
         'rate_limit_per_minute' => env('CHATBOT_RATE_LIMIT_PER_MINUTE', 30),
+        'order_status_rate_limit_per_minute' => env('CHATBOT_ORDER_STATUS_RATE_LIMIT_PER_MINUTE', 20),
     ],
 
     'gemini' => [

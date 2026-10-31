@@ -139,8 +139,8 @@ Entrega parcial (fatia 1): `docs/VALIDACAO-CHATBOT-CONVERSA.md`.
 - [x] Permitir sair da etapa atual; remover item e nova seleção já existiam / seguem pelo fluxo (31/10/2026).
 - [ ] Oferecer alternativas disponíveis quando não houver estoque, sem substituição automática.
 - [x] Mostrar resumo completo e solicitar confirmação antes de concluir (31/10/2026).
-- [ ] Manter identificação, entrega/retirada, pagamento e acompanhamento conforme a operação implementada.
-- [ ] Encaminhar ao atendimento humano com o contexto necessário.
+- [x] Manter identificação, entrega/retirada, pagamento e acompanhamento conforme a operação implementada (31/10/2026).
+- [x] Encaminhar ao atendimento humano com o contexto necessário (31/10/2026).
 - [x] Preservar validação de preço, estoque, permissões e proteção contra conclusão duplicada no servidor (já na base de vendas/estoque).
 
 **Aceite:** o cliente consegue revisar o pedido e corrigir erros; a loja consegue atendê-lo; indisponibilidade da IA não produz confirmação falsa nem ignora regras de negócio.
