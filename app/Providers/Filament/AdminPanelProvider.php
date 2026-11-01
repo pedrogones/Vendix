@@ -36,10 +36,10 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('web')
             ->login(Login::class)
             ->registration(Register::class)
-            ->brandLogo(asset('assets/brand/logo-a.svg'))
-            ->darkModeBrandLogo(asset('assets/brand/logo-a.svg'))
+            ->brandLogo(fn (): string => asset_('assets/brand/logo-a.png'))
+            ->darkModeBrandLogo(fn (): string => asset_('assets/brand/logo-a.png'))
             ->brandLogoHeight('2rem')
-            ->favicon(asset('assets/brand/logo-c.svg'))
+            ->favicon(fn (): string => asset_('assets/brand/logo-c.png'))
             ->colors([
                 'primary' => Color::hex('#2F5D50'),
                 'warning' => Color::hex('#D4A017'),

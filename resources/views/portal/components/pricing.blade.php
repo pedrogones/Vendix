@@ -9,7 +9,7 @@
 
         <div class="mx-auto mt-8 max-w-2xl rounded-3xl bg-white p-5 shadow-xl sm:mt-12 sm:p-8">
             <div class="mb-4 flex justify-center">
-                <img src="{{ asset('assets/brand/logo-b.svg') }}" alt="Vendix" class="h-10 w-auto sm:h-12" />
+                <img src="{{ asset_('assets/brand/logo-b.png') }}" alt="Vendix" class="h-10 w-auto sm:h-12" />
             </div>
             <h3 class="text-center text-2xl font-extrabold text-slate-900 sm:text-3xl">Acesso à gestão</h3>
             <p class="mt-3 text-center text-base text-slate-600 sm:mt-4 sm:text-lg">

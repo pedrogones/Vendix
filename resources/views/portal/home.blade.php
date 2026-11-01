@@ -13,11 +13,11 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="format-detection" content="telephone=no" />
     <link rel="canonical" href="{{ config('app.url', url('/')) }}" />
-    <link rel="icon" href="{{ asset('assets/brand/logo-c.svg') }}" type="image/svg+xml" />
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/favicon-32x32.png') }}" />
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/favicon-16x16.png') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/apple-touch-icon.png') }}" />
-    <link rel="manifest" href="{{ asset('assets/site.webmanifest') }}" />
+    <link rel="icon" href="{{ asset_('assets/brand/logo-c.png') }}" type="image/png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset_('assets/favicon-32x32.png') }}" />
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset_('assets/favicon-16x16.png') }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset_('assets/apple-touch-icon.png') }}" />
+    <link rel="manifest" href="{{ asset_('assets/site.webmanifest') }}" />
 
 {{--    <meta property="og:type" content="website" />--}}
 {{--    <meta property="og:site_name" content="{{ config('app.name', 'Vendix') }}" />--}}

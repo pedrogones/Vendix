@@ -7,9 +7,9 @@
     <title>{{ $company['name'] }} | Vitrine</title>
     <meta name="description" content="Catálogo da {{ $company['name'] }}. Peça pelo chat — retirada ou entrega." />
     <meta name="theme-color" content="#2F5D50" />
-    <link rel="icon" href="{{ asset('assets/brand/logo-c.svg') }}" type="image/svg+xml" />
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/favicon-32x32.png') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/apple-touch-icon.png') }}" />
+    <link rel="icon" href="{{ asset_('assets/brand/logo-c.png') }}" type="image/png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset_('assets/favicon-32x32.png') }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset_('assets/apple-touch-icon.png') }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -857,7 +857,7 @@
     <div class="topbar">
         <div class="wrap topbar__inner">
             <a href="#top" class="topbar__brand">
-                <img src="{{ asset('assets/brand/logo-c.svg') }}" alt="" />
+                <img src="{{ asset_('assets/brand/logo-c.png') }}" alt="" />
                 <span>{{ $company['name'] }}</span>
             </a>
             <label class="search">
@@ -919,7 +919,7 @@
                 <div class="offers-panel">
                     <div class="section__head">
                         <h2 class="section__title section__title-row">
-                            <img src="{{ asset('assets/brand/mark-b.svg') }}" alt="" />
+                            <img src="{{ asset_('assets/brand/mark-b.png') }}" alt="" />
                             Ofertas do dia
                         </h2>
                         <span class="section__hint">Toque para pedir</span>
@@ -1007,7 +1007,7 @@
             @endif
             <p class="powered-brand">
                 <span>Powered by</span>
-                <img src="{{ asset('assets/brand/logo-a.svg') }}" alt="Vendix" />
+                <img src="{{ asset_('assets/brand/logo-a.png') }}" alt="Vendix" />
             </p>
         </div>
     </footer>
