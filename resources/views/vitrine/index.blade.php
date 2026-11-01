@@ -59,14 +59,76 @@
             margin-inline: auto;
         }
 
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            backdrop-filter: blur(10px);
+            background: rgba(243, 241, 236, 0.92);
+            border-bottom: 1px solid var(--borda);
+        }
+
+        .topbar__inner {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 0.75rem;
+            min-height: 58px;
+            padding: 0.55rem 0;
+        }
+
+        .topbar__brand {
+            font-family: Fraunces, Georgia, serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+            max-width: 9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .topbar .search input {
+            min-height: 42px;
+            padding-top: 0.45rem;
+            padding-bottom: 0.45rem;
+        }
+
+        .topbar__chat {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 0 0.95rem;
+            border: none;
+            border-radius: 999px;
+            background: var(--folha);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .topbar__chat:hover { background: var(--folha-deep); }
+
+        @media (max-width: 640px) {
+            .topbar__brand { display: none; }
+            .topbar__inner { grid-template-columns: 1fr auto; }
+            .topbar__chat span { display: none; }
+            .topbar__chat {
+                width: 42px;
+                padding: 0;
+                border-radius: 12px;
+            }
+        }
+
         .hero {
             position: relative;
             isolation: isolate;
-            min-height: min(72vh, 560px);
-            display: grid;
-            align-items: end;
             overflow: hidden;
             background: #1a2a24;
+            padding: 1.75rem 0 4.5rem;
         }
 
         .hero__media {
@@ -74,52 +136,113 @@
             inset: 0;
             z-index: -2;
             background:
-                radial-gradient(circle at 70% 30%, rgba(212, 160, 23, 0.22), transparent 40%),
-                linear-gradient(135deg, #1a2a24 0%, #2f5d50 55%, #1a1f16 100%);
+                radial-gradient(circle at 12% 20%, rgba(212, 160, 23, 0.28), transparent 42%),
+                radial-gradient(circle at 88% 10%, rgba(47, 93, 80, 0.55), transparent 38%),
+                linear-gradient(145deg, #16221d 0%, #2f5d50 48%, #121814 100%);
         }
 
-        .hero__media img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: saturate(0.85) brightness(0.72);
+        .hero__media::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: 0.18;
+            background-image:
+                linear-gradient(rgba(247, 244, 238, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(247, 244, 238, 0.07) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: radial-gradient(ellipse at center, #000 35%, transparent 78%);
         }
 
         .hero__veil {
             position: absolute;
             inset: 0;
             z-index: -1;
-            background: linear-gradient(180deg, rgba(26, 31, 22, 0.25) 0%, rgba(26, 31, 22, 0.78) 72%, rgba(26, 31, 22, 0.92) 100%);
+            background: linear-gradient(180deg, rgba(26, 31, 22, 0.15) 0%, rgba(26, 31, 22, 0.45) 100%);
         }
 
         .hero__content {
-            padding: 3.5rem 0 2.75rem;
             color: #f7f4ee;
-            max-width: 36rem;
-            animation: rise 0.7s ease both;
+            animation: rise 0.55s ease both;
+        }
+
+        .hero__row {
+            display: grid;
+            gap: 1.25rem;
+            align-items: end;
+        }
+
+        @media (min-width: 860px) {
+            .hero__row {
+                grid-template-columns: 1.2fr 0.8fr;
+                gap: 2rem;
+            }
         }
 
         .hero__brand {
             font-family: Fraunces, Georgia, serif;
             font-weight: 700;
-            font-size: clamp(2.6rem, 8vw, 4.25rem);
-            line-height: 0.95;
+            font-size: clamp(2.15rem, 6vw, 3.35rem);
+            line-height: 0.98;
             letter-spacing: -0.02em;
-            margin: 0 0 0.85rem;
+            margin: 0 0 0.55rem;
         }
 
         .hero__lead {
-            margin: 0 0 1.5rem;
-            font-size: 1.05rem;
+            margin: 0 0 1rem;
+            font-size: 0.98rem;
             line-height: 1.45;
             color: rgba(247, 244, 238, 0.88);
-            max-width: 28rem;
+            max-width: 32rem;
+        }
+
+        .hero__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem 0.85rem;
+            margin: 0 0 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: rgba(247, 244, 238, 0.72);
+        }
+
+        .hero__meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
         }
 
         .hero__actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.75rem;
+            gap: 0.65rem;
+        }
+
+        .hero__aside {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+        }
+
+        .hero-stat {
+            background: rgba(247, 244, 238, 0.08);
+            border: 1px solid rgba(247, 244, 238, 0.14);
+            border-radius: 14px;
+            padding: 0.9rem 0.95rem;
+        }
+
+        .hero-stat strong {
+            display: block;
+            font-family: Fraunces, Georgia, serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #f7f4ee;
+            margin-bottom: 0.15rem;
+        }
+
+        .hero-stat span {
+            font-size: 0.75rem;
+            color: rgba(247, 244, 238, 0.7);
+            line-height: 1.3;
         }
 
         .btn {
@@ -159,6 +282,36 @@
 
         .section {
             padding: 2.25rem 0 0.5rem;
+        }
+
+        .section--offers {
+            margin-top: -3rem;
+            padding-top: 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .offers-panel {
+            background: rgba(243, 241, 236, 0.96);
+            border: 1px solid var(--borda);
+            border-radius: 18px;
+            padding: 1rem 1rem 1.1rem;
+            box-shadow: 0 16px 36px rgba(26, 31, 22, 0.12);
+        }
+
+        .img-fallback {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            font-family: Fraunces, Georgia, serif;
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--folha);
+            background:
+                radial-gradient(circle at 30% 25%, rgba(212, 160, 23, 0.22), transparent 50%),
+                linear-gradient(145deg, #e7efe9, #d5e0d8);
         }
 
         .section__head {
@@ -222,6 +375,7 @@
             aspect-ratio: 4 / 3;
             background: var(--papel-2);
             position: relative;
+            overflow: hidden;
         }
 
         .product__img {
@@ -657,39 +811,84 @@
     </style>
 </head>
 <body>
-    <header class="hero">
+    <div class="topbar">
+        <div class="wrap topbar__inner">
+            <a href="#top" class="topbar__brand">{{ $company['name'] }}</a>
+            <label class="search">
+                <span class="search__icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </span>
+                <span class="sr-only">Buscar produtos</span>
+                <input id="products-search" type="search" placeholder="Buscar no catálogo..." autocomplete="off" />
+            </label>
+            <button type="button" class="topbar__chat" id="topbar-chat" aria-label="Pedir no chat">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 9h10M7 13h6M4 5h16v11H8l-4 3V5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Pedir</span>
+            </button>
+        </div>
+    </div>
+
+    <header class="hero" id="top">
         <div class="hero__media" aria-hidden="true"></div>
         <div class="hero__veil" aria-hidden="true"></div>
         <div class="wrap hero__content">
-            <h1 class="hero__brand">{{ $company['name'] }}</h1>
-            <p class="hero__lead">Pedidos pelo chat · retirada ou entrega. Confira as ofertas e peça sem cadastro.</p>
-            <div class="hero__actions">
-                <button type="button" class="btn btn--primary" id="hero-chat">Pedir no chat</button>
-                <a href="#ofertas" class="btn btn--ghost">Ver ofertas</a>
+            <div class="hero__row">
+                <div>
+                    <h1 class="hero__brand">{{ $company['name'] }}</h1>
+                    <p class="hero__lead">Pedidos pelo chat · retirada ou entrega. Confira as ofertas e peça sem cadastro.</p>
+                    <p class="hero__meta">
+                        <span>{{ $company['phone'] }}</span>
+                        <span>{{ $company['address'] }}</span>
+                    </p>
+                    <div class="hero__actions">
+                        <button type="button" class="btn btn--primary" id="hero-chat">Pedir no chat</button>
+                        <a href="#catalogo" class="btn btn--ghost">Ver catálogo</a>
+                    </div>
+                </div>
+                <div class="hero__aside" aria-label="Resumo da vitrine">
+                    <div class="hero-stat">
+                        <strong>{{ $promotionalProducts->count() }}</strong>
+                        <span>ofertas ativas agora</span>
+                    </div>
+                    <div class="hero-stat">
+                        <strong>{{ $products->count() }}</strong>
+                        <span>produtos no catálogo</span>
+                    </div>
+                    <div class="hero-stat">
+                        <strong>{{ $categories->count() }}</strong>
+                        <span>categorias para filtrar</span>
+                    </div>
+                    <div class="hero-stat">
+                        <strong>Chat</strong>
+                        <span>monte o pedido sem cadastro</span>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <main>
-        <section class="section" id="ofertas">
+        <section class="section section--offers" id="ofertas">
             <div class="wrap">
-                <div class="section__head">
-                    <h2 class="section__title">Ofertas do dia</h2>
-                    <span class="section__hint">Toque para pedir</span>
-                </div>
-
-                @if ($promotionalProducts->isEmpty())
-                    <div class="offers-empty">Nenhuma promoção ativa no momento.</div>
-                @else
-                    <div class="offers">
-                        @foreach ($promotionalProducts as $product)
-                            @include('vitrine.partials.product-card', [
-                                'product' => $product,
-                                'offerStrip' => true,
-                            ])
-                        @endforeach
+                <div class="offers-panel">
+                    <div class="section__head">
+                        <h2 class="section__title">Ofertas do dia</h2>
+                        <span class="section__hint">Toque para pedir</span>
                     </div>
-                @endif
+
+                    @if ($promotionalProducts->isEmpty())
+                        <div class="offers-empty">Nenhuma promoção ativa no momento.</div>
+                    @else
+                        <div class="offers">
+                            @foreach ($promotionalProducts as $product)
+                                @include('vitrine.partials.product-card', [
+                                    'product' => $product,
+                                    'offerStrip' => true,
+                                ])
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
         </section>
 
@@ -701,14 +900,6 @@
                 </div>
 
                 <div class="toolbar">
-                    <label class="search">
-                        <span class="search__icon" aria-hidden="true">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                        </span>
-                        <span class="sr-only">Buscar produtos</span>
-                        <input id="products-search" type="search" placeholder="O que você procura?" autocomplete="off" />
-                    </label>
-
                     <div class="chips" id="category-chips-container" role="group" aria-label="Categorias">
                         <button
                             type="button"
@@ -956,6 +1147,7 @@
             const toggleButton = document.getElementById('chatbot-toggle');
             const minimizeButton = document.getElementById('chatbot-minimize');
             const heroChat = document.getElementById('hero-chat');
+            const topbarChat = document.getElementById('topbar-chat');
             const form = document.getElementById('chatbot-form');
             const input = document.getElementById('chatbot-input');
             const messages = document.getElementById('chatbot-messages');
@@ -1009,6 +1201,17 @@
 
             heroChat.addEventListener('click', function () {
                 toggleChat(true);
+            });
+
+            topbarChat.addEventListener('click', function () {
+                toggleChat(true);
+            });
+
+            searchInput.addEventListener('focus', function () {
+                const catalog = document.getElementById('catalogo');
+                if (catalog) {
+                    catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             });
 
             form.addEventListener('submit', async function (event) {

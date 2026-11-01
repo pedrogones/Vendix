@@ -1,7 +1,14 @@
 @php
     $hasPromotion = app(\App\Services\Products\ProductPricingService::class)->isPromotion($product);
     $outOfStock = (int) $product->stock === 0;
-    $imageUrl = $product->image?->url ?? getDefaultNoFile();
+    $hasImage = filled($product->image?->url);
+    $imageUrl = $hasImage ? $product->image->url : null;
+    $initials = \Illuminate\Support\Str::of($product->name)
+        ->explode(' ')
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($part, 0, 1)))
+        ->implode('');
     $discount = null;
 
     if ($hasPromotion && (float) $product->price > 0) {
@@ -26,11 +33,15 @@
     class="{{ $offerStrip ? 'offer-card' : 'product' }}"
 >
     <div class="{{ $offerStrip ? 'offer-card__img' : 'product__img' }}">
-        <img
-            src="{{ $imageUrl }}"
-            alt="{{ $product->name }}"
-            loading="lazy"
-        />
+        @if ($hasImage)
+            <img
+                src="{{ $imageUrl }}"
+                alt="{{ $product->name }}"
+                loading="lazy"
+            />
+        @else
+            <span class="img-fallback" aria-hidden="true">{{ $initials !== '' ? $initials : '?' }}</span>
+        @endif
 
         @if ($hasPromotion && $discount !== null)
             <span class="badge-off">{{ $discount }}% OFF</span>
