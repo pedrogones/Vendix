@@ -36,8 +36,13 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('web')
             ->login(Login::class)
             ->registration(Register::class)
+            ->brandLogo(asset('assets/brand/logo-a.svg'))
+            ->darkModeBrandLogo(asset('assets/brand/logo-a.svg'))
+            ->brandLogoHeight('2rem')
+            ->favicon(asset('assets/brand/logo-c.svg'))
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#2F5D50'),
+                'warning' => Color::hex('#D4A017'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

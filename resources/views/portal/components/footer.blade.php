@@ -3,8 +3,7 @@
         <div class="grid gap-8 sm:gap-10 md:grid-cols-2 lg:grid-cols-4">
             <div class="min-w-0">
                 <a href="{{ url('/') }}" class="inline-flex items-center gap-3">
-                    <img src="{{ asset('assets/img/vendix.png') }}" alt="Vendix" class="h-10 w-10 sm:h-11 sm:w-11" />
-                    <span class="text-xl font-extrabold text-violet-800 sm:text-2xl">Vendix</span>
+                    <img src="{{ asset('assets/brand/logo-a.svg') }}" alt="Vendix" class="h-9 w-auto sm:h-11" />
                 </a>
                 <p class="mt-4 max-w-xs text-sm text-slate-600 sm:text-base">
                     Sistema de gestão para loja: balcão, estoque, catálogo e relatórios com informação real.

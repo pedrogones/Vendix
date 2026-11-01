@@ -6,6 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $company['name'] }} | Vitrine</title>
     <meta name="description" content="Catálogo da {{ $company['name'] }}. Peça pelo chat — retirada ou entrega." />
+    <meta name="theme-color" content="#2F5D50" />
+    <link rel="icon" href="{{ asset('assets/brand/logo-c.svg') }}" type="image/svg+xml" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/favicon-32x32.png') }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/apple-touch-icon.png') }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -78,14 +82,52 @@
         }
 
         .topbar__brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
             font-family: Fraunces, Georgia, serif;
             font-weight: 700;
             font-size: 1.05rem;
             letter-spacing: -0.01em;
             white-space: nowrap;
-            max-width: 9rem;
+            max-width: 11rem;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--tinta);
+        }
+
+        .topbar__brand img {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .section__title-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .section__title-row img {
+            width: 28px;
+            height: 28px;
+        }
+
+        .powered-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 1rem;
+        }
+
+        .powered-brand img {
+            height: 22px;
+            width: auto;
+        }
+
+        .powered-brand span {
+            font-size: 0.75rem;
+            opacity: 0.8;
         }
 
         .topbar .search input {
@@ -113,8 +155,9 @@
         .topbar__chat:hover { background: var(--folha-deep); }
 
         @media (max-width: 640px) {
-            .topbar__brand { display: none; }
-            .topbar__inner { grid-template-columns: 1fr auto; }
+            .topbar__brand span { display: none; }
+            .topbar__brand { max-width: none; }
+            .topbar__inner { grid-template-columns: auto 1fr auto; }
             .topbar__chat span { display: none; }
             .topbar__chat {
                 width: 42px;
@@ -813,7 +856,10 @@
 <body>
     <div class="topbar">
         <div class="wrap topbar__inner">
-            <a href="#top" class="topbar__brand">{{ $company['name'] }}</a>
+            <a href="#top" class="topbar__brand">
+                <img src="{{ asset('assets/brand/logo-c.svg') }}" alt="" />
+                <span>{{ $company['name'] }}</span>
+            </a>
             <label class="search">
                 <span class="search__icon" aria-hidden="true">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -872,7 +918,10 @@
             <div class="wrap">
                 <div class="offers-panel">
                     <div class="section__head">
-                        <h2 class="section__title">Ofertas do dia</h2>
+                        <h2 class="section__title section__title-row">
+                            <img src="{{ asset('assets/brand/mark-b.svg') }}" alt="" />
+                            Ofertas do dia
+                        </h2>
                         <span class="section__hint">Toque para pedir</span>
                     </div>
 
@@ -956,7 +1005,10 @@
             @if (! empty($company['cnpj']) && $company['cnpj'] !== 'CNPJ nao informado')
                 <p>CNPJ: {{ $company['cnpj'] }}</p>
             @endif
-            <p class="powered">Powered by Vendix</p>
+            <p class="powered-brand">
+                <span>Powered by</span>
+                <img src="{{ asset('assets/brand/logo-a.svg') }}" alt="Vendix" />
+            </p>
         </div>
     </footer>
 

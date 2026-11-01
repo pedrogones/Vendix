@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" role="img" aria-label="Vendix">
+  <title>Vendix</title>
+  <!-- A: badge V + check + wordmark  header / navbar -->
+  <rect x="2" y="4" width="56" height="56" rx="14" fill="#2F5D50"/>
+  <path d="M16 20 L28 44 L40 20" fill="none" stroke="#F7F4EE" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M34 38 L40 44 L50 28" fill="none" stroke="#D4A017" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#1A1F16" font-family="DM Sans, Manrope, Arial, sans-serif" font-weight="700" font-size="34" letter-spacing="-0.04em">
+    <text x="72" y="43">Vendix</text>
+  </g>
+  <rect x="248" y="36" width="7" height="7" rx="1.5" fill="#D4A017"/>
+</svg>

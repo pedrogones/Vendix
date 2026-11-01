@@ -1,8 +1,7 @@
 ﻿<header class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
-        <a href="{{ url('/') }}" class="flex min-w-0 items-center gap-2 sm:gap-3">
-            <img src="{{ asset('assets/img/vendix.png') }}" alt="Vendix" class="h-9 w-9 shrink-0 sm:h-11 sm:w-11" />
-            <span class="truncate text-lg font-extrabold tracking-tight text-violet-800 sm:text-xl">Vendix</span>
+        <a href="{{ url('/') }}" class="flex min-w-0 items-center">
+            <img src="{{ asset('assets/brand/logo-a.svg') }}" alt="Vendix" class="h-8 w-auto sm:h-10" />
         </a>
 
         <nav class="hidden items-center gap-8 text-base font-semibold text-slate-700 lg:flex">

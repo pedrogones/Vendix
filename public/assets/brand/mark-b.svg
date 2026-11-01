@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" role="img" aria-label="Oferta Vendix">
+  <title>Oferta</title>
+  <!-- B mark only  chip next to Ofertas -->
+  <path d="M8 8 H40 C46 8 50 12 50 18 V38 C50 44 46 48 40 48 H8 C6 48 4 46 4 44 V12 C4 10 6 8 8 8 Z" fill="#2F5D50"/>
+  <circle cx="14" cy="28" r="4" fill="#F3F1EC"/>
+  <rect x="22" y="8" width="6" height="40" fill="#D4A017"/>
+  <path d="M30 18 L38 38 L46 18" fill="none" stroke="#F7F4EE" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
