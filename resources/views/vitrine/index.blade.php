@@ -1,321 +1,812 @@
 <!doctype html>
-<html lang="pt-BR" class="h-full scroll-smooth">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Vitrine | {{ $company['name'] }}</title>
-    <meta name="description" content="Vitrine publica da {{ $company['name'] }} com ofertas e produtos atualizados." />
+    <title>{{ $company['name'] }} | Vitrine</title>
+    <meta name="description" content="Catálogo da {{ $company['name'] }}. Peça pelo chat — retirada ou entrega." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
     <style>
         :root {
             color-scheme: light;
-            --brand-purple: #6d28d9;
-            --brand-purple-soft: #f4ecff;
-            --brand-yellow: #facc15;
-            --brand-yellow-soft: #fef9c3;
+            --papel: #F3F1EC;
+            --papel-2: #EAE6DE;
+            --tinta: #1A1F16;
+            --tinta-soft: #3D4538;
+            --folha: #2F5D50;
+            --folha-deep: #23483E;
+            --citrico: #D4A017;
+            --borda: rgba(26, 31, 22, 0.12);
+            --alerta: #8B3A2F;
+            --radius: 14px;
+            --max: 1120px;
         }
+
+        * { box-sizing: border-box; }
 
         body {
-            font-family: 'Manrope', sans-serif;
-            background: #f8f4ff;
-        }
-
-        .vitrine-background {
+            margin: 0;
+            font-family: "DM Sans", system-ui, sans-serif;
+            color: var(--tinta);
             background:
-                radial-gradient(circle at 12% 0%, rgba(109, 40, 217, 0.12), transparent 36%),
-                radial-gradient(circle at 92% 6%, rgba(250, 204, 21, 0.15), transparent 34%),
-                #f8f4ff;
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(47, 93, 80, 0.14), transparent 55%),
+                radial-gradient(ellipse 60% 40% at 100% 0%, rgba(212, 160, 23, 0.12), transparent 45%),
+                var(--papel);
+            min-height: 100vh;
         }
 
-        .category-chip {
-            display: inline-flex;
-            width: auto;
-            align-items: center;
-            justify-content: center;
-            border: 0;
-            border-bottom: 2px solid transparent;
-            border-radius: 0;
-            background: transparent;
-            color: #6b7280;
-            font-size: 0.75rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            padding: 6px 2px;
+        img { display: block; max-width: 100%; }
+        button, input { font: inherit; }
+        a { color: inherit; text-decoration: none; }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
             white-space: nowrap;
-            transition: color 0.22s ease, border-color 0.22s ease;
+            border: 0;
         }
 
-        .category-chip:hover {
-            color: #4c1d95;
-            border-color: #8b5cf6;
+        .wrap {
+            width: min(100% - 2rem, var(--max));
+            margin-inline: auto;
         }
 
-        .category-chip[data-active="true"] {
-            color: #4c1d95;
-            border-color: var(--brand-purple);
+        .hero {
+            position: relative;
+            isolation: isolate;
+            min-height: min(72vh, 560px);
+            display: grid;
+            align-items: end;
+            overflow: hidden;
+            background: #1a2a24;
         }
 
-        .page-btn {
+        .hero__media {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            background:
+                radial-gradient(circle at 70% 30%, rgba(212, 160, 23, 0.22), transparent 40%),
+                linear-gradient(135deg, #1a2a24 0%, #2f5d50 55%, #1a1f16 100%);
+        }
+
+        .hero__media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(0.85) brightness(0.72);
+        }
+
+        .hero__veil {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: linear-gradient(180deg, rgba(26, 31, 22, 0.25) 0%, rgba(26, 31, 22, 0.78) 72%, rgba(26, 31, 22, 0.92) 100%);
+        }
+
+        .hero__content {
+            padding: 3.5rem 0 2.75rem;
+            color: #f7f4ee;
+            max-width: 36rem;
+            animation: rise 0.7s ease both;
+        }
+
+        .hero__brand {
+            font-family: Fraunces, Georgia, serif;
+            font-weight: 700;
+            font-size: clamp(2.6rem, 8vw, 4.25rem);
+            line-height: 0.95;
+            letter-spacing: -0.02em;
+            margin: 0 0 0.85rem;
+        }
+
+        .hero__lead {
+            margin: 0 0 1.5rem;
+            font-size: 1.05rem;
+            line-height: 1.45;
+            color: rgba(247, 244, 238, 0.88);
+            max-width: 28rem;
+        }
+
+        .hero__actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .btn {
             display: inline-flex;
-            height: 36px;
-            min-width: 36px;
             align-items: center;
             justify-content: center;
-            border-radius: 10px;
-            border: 1px solid #d6bcfa;
-            background: #ffffff;
-            color: #6d28d9;
-            font-size: 0.86rem;
+            gap: 0.45rem;
+            min-height: 48px;
+            padding: 0.7rem 1.25rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        }
+
+        .btn:active { transform: translateY(1px); }
+
+        .btn--primary {
+            background: var(--citrico);
+            color: var(--tinta);
+        }
+
+        .btn--primary:hover { background: #e0b01f; }
+
+        .btn--ghost {
+            background: transparent;
+            border-color: rgba(247, 244, 238, 0.35);
+            color: #f7f4ee;
+        }
+
+        .btn--ghost:hover {
+            border-color: rgba(247, 244, 238, 0.7);
+            background: rgba(247, 244, 238, 0.08);
+        }
+
+        .section {
+            padding: 2.25rem 0 0.5rem;
+        }
+
+        .section__head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .section__title {
+            font-family: Fraunces, Georgia, serif;
+            font-size: clamp(1.45rem, 3vw, 1.85rem);
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .section__hint {
+            font-size: 0.82rem;
+            color: var(--tinta-soft);
+            font-weight: 500;
+        }
+
+        .offers {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(200px, 240px);
+            gap: 0.9rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .offer-card,
+        .product {
+            scroll-snap-align: start;
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: var(--radius);
+            overflow: hidden;
+            cursor: pointer;
+            text-align: left;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .offer-card:hover,
+        .product:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(26, 31, 22, 0.1);
+        }
+
+        .offer-card__img,
+        .product__img {
+            aspect-ratio: 4 / 3;
+            background: var(--papel-2);
+            position: relative;
+        }
+
+        .product__img {
+            aspect-ratio: 5 / 4;
+        }
+
+        .offer-card__img img,
+        .product__img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .badge-off {
+            position: absolute;
+            top: 0.6rem;
+            left: 0.6rem;
+            background: var(--citrico);
+            color: var(--tinta);
+            font-size: 0.68rem;
             font-weight: 700;
-            padding: 0 12px;
-            transition: all 0.2s ease;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 0.28rem 0.5rem;
+            border-radius: 6px;
         }
 
-        .page-btn:hover:not(:disabled) {
-            border-color: #8b5cf6;
-            background: #f5efff;
+        .badge-out {
+            position: absolute;
+            top: 0.6rem;
+            left: 0.6rem;
+            background: var(--alerta);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 0.28rem 0.5rem;
+            border-radius: 6px;
         }
 
-        .page-btn.is-active {
-            border-color: var(--brand-purple);
-            background: var(--brand-purple);
-            color: #ffffff;
+        .badge-off + .badge-out {
+            left: auto;
+            right: 0.6rem;
         }
 
-        .page-btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.4;
+        .offer-card__body,
+        .product__body {
+            padding: 0.85rem 0.95rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            flex: 1;
         }
 
-        .chatbot-enter {
-            opacity: 0;
-            transform: translateY(16px) scale(0.98);
+        .offer-card__name,
+        .product__name {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .product__cat {
+            margin: 0;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--tinta-soft);
+        }
+
+        .price-old {
+            margin: 0;
+            font-size: 0.75rem;
+            color: var(--tinta-soft);
+            text-decoration: line-through;
+        }
+
+        .price-now {
+            margin: 0.1rem 0 0;
+            font-family: Fraunces, Georgia, serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--folha);
+        }
+
+        .product__ask {
+            margin-top: auto;
+            padding-top: 0.65rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--folha);
+        }
+
+        .toolbar {
+            display: grid;
+            gap: 0.85rem;
+            margin-bottom: 1.15rem;
+        }
+
+        .search {
+            position: relative;
+        }
+
+        .search input {
+            width: 100%;
+            min-height: 48px;
+            border-radius: 12px;
+            border: 1px solid var(--borda);
+            background: #fff;
+            padding: 0.7rem 1rem 0.7rem 2.7rem;
+            color: var(--tinta);
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .search input:focus {
+            border-color: var(--folha);
+            box-shadow: 0 0 0 3px rgba(47, 93, 80, 0.15);
+        }
+
+        .search__icon {
+            position: absolute;
+            left: 0.95rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--tinta-soft);
             pointer-events: none;
         }
 
-        .chatbot-enter.chatbot-open {
+        .chips {
+            display: flex;
+            gap: 0.45rem;
+            overflow-x: auto;
+            padding-bottom: 0.15rem;
+            scrollbar-width: none;
+        }
+
+        .chips::-webkit-scrollbar { display: none; }
+
+        .chip {
+            flex: 0 0 auto;
+            border: 1px solid var(--borda);
+            background: transparent;
+            color: var(--tinta-soft);
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .chip:hover {
+            border-color: var(--folha);
+            color: var(--folha);
+        }
+
+        .chip[aria-pressed="true"] {
+            background: var(--folha);
+            border-color: var(--folha);
+            color: #fff;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
+        }
+
+        @media (min-width: 720px) {
+            .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+            .toolbar { grid-template-columns: 1fr; }
+        }
+
+        @media (min-width: 1024px) {
+            .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+
+        .empty {
+            margin-top: 1rem;
+            padding: 2.5rem 1.25rem;
+            text-align: center;
+            border: 1px dashed var(--borda);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.55);
+            color: var(--tinta-soft);
+        }
+
+        .hidden { display: none !important; }
+
+        .pager {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.45rem;
+            margin: 1.5rem 0 0.5rem;
+        }
+
+        .page-btn {
+            min-width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--borda);
+            background: #fff;
+            color: var(--folha);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 0 0.75rem;
+        }
+
+        .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .page-btn.is-active {
+            background: var(--folha);
+            border-color: var(--folha);
+            color: #fff;
+        }
+
+        .site-footer {
+            margin-top: 3rem;
+            padding: 2rem 0 6.5rem;
+            border-top: 1px solid var(--borda);
+            color: var(--tinta-soft);
+            font-size: 0.88rem;
+        }
+
+        .site-footer strong {
+            color: var(--tinta);
+            font-family: Fraunces, Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .site-footer p { margin: 0.35rem 0; }
+        .site-footer .powered {
+            margin-top: 1rem;
+            font-size: 0.78rem;
+            opacity: 0.8;
+        }
+
+        .chat-fab {
+            position: fixed;
+            right: 1.25rem;
+            bottom: 1.25rem;
+            z-index: 50;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: none;
+            background: var(--folha);
+            color: #fff;
+            box-shadow: 0 10px 28px rgba(47, 93, 80, 0.35);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .chat-fab:hover {
+            background: var(--folha-deep);
+            transform: scale(1.04);
+        }
+
+        .chat-panel {
+            position: fixed;
+            right: 1.25rem;
+            bottom: 5.5rem;
+            z-index: 50;
+            width: min(calc(100vw - 2rem), 360px);
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 18px;
+            box-shadow: 0 18px 48px rgba(26, 31, 22, 0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(12px) scale(0.98);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .chat-panel.is-open {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: none;
             pointer-events: auto;
         }
 
-        .chatbot-loader-dot {
+        .chat-panel__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.95rem 1rem;
+            background: var(--folha);
+            color: #fff;
+        }
+
+        .chat-panel__head p { margin: 0; }
+
+        .chat-panel__eyebrow {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        .chat-panel__title {
+            font-family: Fraunces, Georgia, serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .chat-panel__close {
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .chat-panel__msgs {
+            height: 280px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--papel);
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .chatbot-bubble {
+            max-width: 85%;
+            min-width: 0;
+            padding: 0.65rem 0.8rem;
+            border-radius: 14px;
+            font-size: 0.88rem;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .chatbot-bubble--bot {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-top-left-radius: 4px;
+            align-self: flex-start;
+        }
+
+        .chatbot-bubble--user {
+            background: var(--folha);
+            color: #fff;
+            border-top-right-radius: 4px;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .chat-loader {
+            display: none;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0 1rem 0.5rem;
+            font-size: 0.75rem;
+            color: var(--tinta-soft);
+        }
+
+        .chat-loader.is-visible { display: flex; }
+
+        .chat-loader-dot {
             width: 7px;
             height: 7px;
             border-radius: 9999px;
-            background: var(--brand-purple);
+            background: var(--folha);
             animation: chatbotPulse 1.2s infinite ease-in-out;
         }
 
-        .chatbot-loader-dot:nth-child(2) { animation-delay: 0.2s; }
-        .chatbot-loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        .chat-loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .chat-loader-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        .chat-panel__form {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-top: 1px solid var(--borda);
+            background: #fff;
+        }
+
+        .chat-panel__form input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 0.65rem 0.8rem;
+            outline: none;
+        }
+
+        .chat-panel__form input:focus { border-color: var(--folha); }
+
+        .chat-panel__form button {
+            border: none;
+            background: var(--folha);
+            color: #fff;
+            border-radius: 12px;
+            padding: 0 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .offers-empty {
+            padding: 2rem 1.25rem;
+            text-align: center;
+            border: 1px dashed var(--borda);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.55);
+            color: var(--tinta-soft);
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: none; }
+        }
 
         @keyframes chatbotPulse {
             0%, 100% { opacity: 0.25; transform: translateY(0); }
             50% { opacity: 1; transform: translateY(-3px); }
         }
-
-        #chatbot-messages .chatbot-bubble {
-            max-width: 85%;
-            min-width: 0;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-            white-space: pre-wrap;
-        }
     </style>
 </head>
-<body class="min-h-full text-slate-900">
-    <header class="sticky top-0 z-40 border-b border-violet-100 bg-white/95 backdrop-blur">
-        <div class="border-b border-violet-100 bg-violet-50/50">
-            <div class="mx-auto flex max-w-7xl items-center gap-x-4 gap-y-1 px-4 py-1.5 text-[11px] font-semibold text-slate-600 sm:flex-wrap sm:gap-x-5 sm:gap-y-2 sm:py-2 sm:text-xs sm:px-6 lg:px-8">
-                <span class="max-w-[165px] truncate font-bold text-violet-700 sm:max-w-none">{{ $company['name'] }}</span>
-                <span class="hidden sm:inline">CNPJ: {{ $company['cnpj'] }}</span>
-                <span>Telefone: {{ $company['phone'] }}</span>
-                <span class="hidden max-w-[280px] truncate md:inline lg:max-w-none">Endereco: {{ $company['address'] }}</span>
-            </div>
-        </div>
-
-        <div class="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 sm:py-4 lg:px-8">
-            <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-[300px_minmax(0,1fr)_220px] lg:items-center">
-                <button type="button" class="order-1 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-violet-700 px-3 text-sm font-extrabold uppercase tracking-[0.06em] text-white shadow-md shadow-violet-300/40 transition hover:bg-violet-800 sm:h-12 sm:px-5 sm:text-[15px] lg:h-14 lg:gap-3 lg:px-6 lg:text-base lg:tracking-[0.08em] lg:shadow-lg lg:shadow-violet-300/50">
-                    <span class="text-lg lg:text-xl">&#9776;</span>
-                    Departamentos
-                </button>
-                <a href="#todos-os-produtos" class="order-2 inline-flex h-11 items-center justify-center rounded-xl bg-yellow-300 px-3 text-sm font-extrabold uppercase tracking-[0.06em] text-violet-900 shadow-md shadow-yellow-300/40 transition hover:bg-yellow-200 sm:h-12 sm:px-5 sm:text-[15px] lg:order-3 lg:h-14 lg:text-base lg:tracking-[0.08em] lg:shadow-lg lg:shadow-yellow-300/50">
-                    Catalogo
-                    <span id="catalog-count" class="ml-2 rounded-md bg-violet-900/15 px-1.5 py-0.5 text-[11px] font-bold sm:px-2 sm:text-xs">{{ $products->count() }}</span>
-                </a>
-                <label class="relative order-3 col-span-2 block lg:order-2 lg:col-span-1">
-                    <span class="sr-only">Pesquisar produtos</span>
-                    <input
-                        id="products-search"
-                        type="text"
-                        placeholder="Digite o que voce procura..."
-                        class="h-11 w-full rounded-xl border border-violet-200 bg-white px-4 pr-11 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-violet-400 sm:h-12 sm:px-5 sm:pr-12 sm:text-base lg:h-14 lg:pr-14"
-                    />
-                    <span class="pointer-events-none absolute inset-y-0 right-3 inline-flex items-center text-lg text-violet-500 sm:right-4">&#128269;</span>
-                </label>
+<body>
+    <header class="hero">
+        <div class="hero__media" aria-hidden="true"></div>
+        <div class="hero__veil" aria-hidden="true"></div>
+        <div class="wrap hero__content">
+            <h1 class="hero__brand">{{ $company['name'] }}</h1>
+            <p class="hero__lead">Pedidos pelo chat · retirada ou entrega. Confira as ofertas e peça sem cadastro.</p>
+            <div class="hero__actions">
+                <button type="button" class="btn btn--primary" id="hero-chat">Pedir no chat</button>
+                <a href="#ofertas" class="btn btn--ghost">Ver ofertas</a>
             </div>
         </div>
     </header>
 
-    <main class="vitrine-background pb-24">
-        <section class="mx-auto max-w-7xl px-4 pt-5 sm:px-6 sm:pt-6 lg:px-8">
-            <div class="rounded-2xl border border-violet-200 bg-white p-3.5 shadow-[0_10px_20px_rgba(109,40,217,0.08)] sm:p-4">
-                <div class="mb-2 flex items-center justify-between gap-2">
-                    <h2 class="text-base font-extrabold uppercase tracking-[0.08em] text-violet-900 sm:text-lg">Categorias</h2>
-                    <span id="active-category-label" class="text-[10px] font-bold uppercase tracking-[0.08em] text-violet-500 sm:text-[11px]">
-                        Todas as categorias
-                    </span>
+    <main>
+        <section class="section" id="ofertas">
+            <div class="wrap">
+                <div class="section__head">
+                    <h2 class="section__title">Ofertas do dia</h2>
+                    <span class="section__hint">Toque para pedir</span>
                 </div>
 
-                <div id="category-chips-container" class="flex items-center gap-4 overflow-x-auto border-b border-violet-200/90 pb-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <button
-                        type="button"
-                        data-category-chip="all"
-                        data-category-name="Todas as categorias"
-                        class="category-chip"
-                        data-active="true"
-                    >
-                        <span>Todas</span>
-                    </button>
+                @if ($promotionalProducts->isEmpty())
+                    <div class="offers-empty">Nenhuma promoção ativa no momento.</div>
+                @else
+                    <div class="offers">
+                        @foreach ($promotionalProducts as $product)
+                            @include('vitrine.partials.product-card', [
+                                'product' => $product,
+                                'offerStrip' => true,
+                            ])
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </section>
 
-                    @foreach ($categories as $category)
+        <section class="section" id="catalogo">
+            <div class="wrap">
+                <div class="section__head">
+                    <h2 class="section__title">Catálogo</h2>
+                    <span class="section__hint" id="products-page-indicator">Página 1</span>
+                </div>
+
+                <div class="toolbar">
+                    <label class="search">
+                        <span class="search__icon" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        </span>
+                        <span class="sr-only">Buscar produtos</span>
+                        <input id="products-search" type="search" placeholder="O que você procura?" autocomplete="off" />
+                    </label>
+
+                    <div class="chips" id="category-chips-container" role="group" aria-label="Categorias">
                         <button
                             type="button"
-                            data-category-chip="item"
-                            data-category-id="{{ $category->id }}"
-                            data-category-name="{{ $category->name }}"
-                            class="category-chip"
-                            data-active="false"
+                            class="chip"
+                            data-category-chip="all"
+                            data-category-name="Todas as categorias"
+                            aria-pressed="true"
                         >
-                            <span class="truncate">{{ $category->name }}</span>
+                            Todas
                         </button>
+
+                        @foreach ($categories as $category)
+                            <button
+                                type="button"
+                                class="chip"
+                                data-category-chip="item"
+                                data-category-id="{{ $category->id }}"
+                                data-category-name="{{ $category->name }}"
+                                aria-pressed="false"
+                            >
+                                {{ $category->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div id="products-grid" class="grid">
+                    @foreach ($products as $product)
+                        @include('vitrine.partials.product-card', [
+                            'product' => $product,
+                            'filterable' => true,
+                        ])
                     @endforeach
                 </div>
-            </div>
-        </section>
 
-        <section id="todos-os-produtos" class="mx-auto max-w-7xl px-4 pt-7 sm:px-6 sm:pt-8 lg:px-8">
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <h2 class="text-xl font-extrabold uppercase tracking-[0.05em] text-violet-900 sm:text-2xl">Todos os produtos</h2>
-                <span id="products-page-indicator" class="text-sm font-semibold text-violet-600">Pagina 1</span>
-            </div>
-
-            <div id="products-grid" class="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                @foreach ($products as $product)
-                    @include('vitrine.partials.product-card', [
-                        'product' => $product,
-                        'promotionSection' => false,
-                        'filterable' => true,
-                    ])
-                @endforeach
-            </div>
-
-            <div id="products-empty" class="mt-4 hidden rounded-2xl border border-dashed border-violet-200 bg-white px-6 py-12 text-center text-slate-500">
-                Nenhum produto encontrado para o filtro atual.
-            </div>
-
-            <div id="products-pagination" class="mt-6 flex items-center justify-center gap-2">
-                <button id="products-prev" type="button" class="page-btn">Anterior</button>
-                <div id="products-pages" class="flex items-center gap-2"></div>
-                <button id="products-next" type="button" class="page-btn">Proxima</button>
-            </div>
-        </section>
-        <section class="mx-auto max-w-7xl px-4 pt-5 sm:px-6 sm:pt-6 lg:px-8">
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <h2 class="flex items-center gap-2 text-xl font-extrabold uppercase tracking-[0.05em] text-violet-900 sm:text-2xl">
-                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-yellow-300 text-sm text-violet-900">%</span>
-                    Ofertas do dia
-                </h2>
-                <span class="rounded-full border border-yellow-200 bg-yellow-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-yellow-700">Atualizado automaticamente</span>
-            </div>
-
-            @if ($promotionalProducts->isEmpty())
-                <div class="rounded-2xl border border-dashed border-violet-200 bg-white px-6 py-12 text-center text-slate-500">
-                    Nenhuma promocao ativa no momento.
+                <div id="products-empty" class="empty hidden">
+                    Nenhum produto encontrado para o filtro atual.
                 </div>
-            @else
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    @foreach ($promotionalProducts as $product)
-                        @include('vitrine.partials.product-card', ['product' => $product, 'promotionSection' => true])
-                    @endforeach
-                </div>
-            @endif
-        </section>
 
+                <div id="products-pagination" class="pager">
+                    <button id="products-prev" type="button" class="page-btn">Anterior</button>
+                    <div id="products-pages" style="display:flex;gap:0.4rem"></div>
+                    <button id="products-next" type="button" class="page-btn">Próxima</button>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <button
-        type="button"
-        id="chatbot-toggle"
-        class="fixed bottom-6 right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-violet-700 text-white shadow-2xl shadow-violet-300/50 transition hover:bg-violet-800 focus:outline-none focus:ring-4 focus:ring-violet-200"
-        aria-label="Abrir chatbot"
-    >
-        <svg viewBox="0 0 24 24" class="h-7 w-7" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 9h10M7 13h6M4 5h16v11H8l-4 3V5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+    <footer class="site-footer">
+        <div class="wrap">
+            <strong>{{ $company['name'] }}</strong>
+            <p>Telefone: {{ $company['phone'] }}</p>
+            <p>{{ $company['address'] }}</p>
+            @if (! empty($company['cnpj']) && $company['cnpj'] !== 'CNPJ nao informado')
+                <p>CNPJ: {{ $company['cnpj'] }}</p>
+            @endif
+            <p class="powered">Powered by Vendix</p>
+        </div>
+    </footer>
+
+    <button type="button" class="chat-fab" id="chatbot-toggle" aria-label="Abrir chat">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M7 9h10M7 13h6M4 5h16v11H8l-4 3V5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
 
-    <section
-        id="chatbot-panel"
-        class="chatbot-enter fixed bottom-24 right-6 z-50 flex w-[calc(100vw-3rem)] max-w-sm flex-col overflow-hidden rounded-3xl border border-violet-200 bg-white shadow-2xl transition duration-300"
-        aria-live="polite"
-    >
-        <header class="flex items-center justify-between bg-violet-700 px-4 py-3 text-white">
+    <section class="chat-panel" id="chatbot-panel" aria-live="polite">
+        <header class="chat-panel__head">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.14em] text-violet-100">Assistente IA</p>
-                <p class="text-base font-bold">Vitrine {{ $company['name'] }}</p>
+                <p class="chat-panel__eyebrow">Assistente da loja</p>
+                <p class="chat-panel__title">{{ $company['name'] }}</p>
             </div>
-            <button
-                type="button"
-                id="chatbot-minimize"
-                class="rounded-full bg-white/20 p-1.5 transition hover:bg-white/30"
-                aria-label="Minimizar chatbot"
-            >
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
+            <button type="button" class="chat-panel__close" id="chatbot-minimize" aria-label="Fechar">✕</button>
         </header>
 
-        <div id="chatbot-messages" class="h-80 space-y-3 overflow-y-auto bg-violet-50 px-4 py-4">
-            <div class="chatbot-bubble rounded-2xl rounded-tl-md bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
-                Ola! Posso ajudar com promocoes, estoque e duvidas sobre produtos.
+        <div id="chatbot-messages" class="chat-panel__msgs">
+            <div class="chatbot-bubble chatbot-bubble--bot">
+                Olá! Diga o que precisa — posso montar o pedido e combinar retirada ou entrega.
             </div>
         </div>
 
-        <div id="chatbot-loader" class="hidden items-center gap-2 px-4 pb-2">
-            <span class="chatbot-loader-dot"></span>
-            <span class="chatbot-loader-dot"></span>
-            <span class="chatbot-loader-dot"></span>
-            <span class="text-xs font-medium text-slate-500">Consultando resposta...</span>
+        <div id="chatbot-loader" class="chat-loader">
+            <span class="chat-loader-dot"></span>
+            <span class="chat-loader-dot"></span>
+            <span class="chat-loader-dot"></span>
+            <span>Consultando resposta...</span>
         </div>
 
-        <form id="chatbot-form" class="border-t border-violet-100 bg-white p-3">
+        <form id="chatbot-form" class="chat-panel__form">
             <label for="chatbot-input" class="sr-only">Mensagem</label>
-            <div class="flex items-center gap-2">
-                <input
-                    id="chatbot-input"
-                    type="text"
-                    maxlength="500"
-                    placeholder="Digite sua mensagem..."
-                    class="h-11 w-full rounded-xl border border-violet-200 px-3 text-sm text-slate-900 outline-none transition focus:border-violet-500"
-                />
-                <button
-                    type="submit"
-                    class="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-violet-700 px-4 text-sm font-bold text-white transition hover:bg-violet-800"
-                >
-                    Enviar
-                </button>
-            </div>
+            <input
+                id="chatbot-input"
+                type="text"
+                maxlength="500"
+                placeholder="Ex.: quero 2 arroz"
+            />
+            <button type="submit">Enviar</button>
         </form>
     </section>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const PRODUCTS_PER_PAGE = 6;
@@ -331,13 +822,9 @@
 
             const categoryAllButton = document.querySelector('[data-category-chip="all"]');
             const categoryButtons = Array.from(document.querySelectorAll('[data-category-chip="item"]'));
-            const activeCategoryLabel = document.getElementById('active-category-label');
-
             const searchInput = document.getElementById('products-search');
-            const catalogCount = document.getElementById('catalog-count');
 
             let selectedCategoryId = 'all';
-            let selectedCategoryName = 'Todas as categorias';
             let productsPage = 1;
 
             function normalizeText(value) {
@@ -345,12 +832,13 @@
             }
 
             function setCategoryActiveStyles() {
-                categoryAllButton.dataset.active = selectedCategoryId === 'all' ? 'true' : 'false';
+                categoryAllButton.setAttribute('aria-pressed', selectedCategoryId === 'all' ? 'true' : 'false');
                 categoryButtons.forEach(function (button) {
-                    button.dataset.active = button.dataset.categoryId === selectedCategoryId ? 'true' : 'false';
+                    button.setAttribute(
+                        'aria-pressed',
+                        button.dataset.categoryId === selectedCategoryId ? 'true' : 'false'
+                    );
                 });
-
-                activeCategoryLabel.textContent = selectedCategoryName;
             }
 
             function getFilteredProducts() {
@@ -417,16 +905,14 @@
                 productsEmpty.classList.toggle('hidden', hasResults);
                 productsGrid.classList.toggle('hidden', !hasResults);
                 productsPageIndicator.textContent = hasResults
-                    ? 'Pagina ' + productsPage + ' de ' + totalPages
+                    ? 'Página ' + productsPage + ' de ' + totalPages
                     : 'Nenhum resultado';
 
-                catalogCount.textContent = String(filteredProducts.length);
                 renderProductsPagination(totalPages);
             }
 
             categoryAllButton.addEventListener('click', function () {
                 selectedCategoryId = 'all';
-                selectedCategoryName = categoryAllButton.dataset.categoryName || 'Todas as categorias';
                 productsPage = 1;
                 setCategoryActiveStyles();
                 renderProducts();
@@ -435,7 +921,6 @@
             categoryButtons.forEach(function (button) {
                 button.addEventListener('click', function () {
                     selectedCategoryId = button.dataset.categoryId;
-                    selectedCategoryName = button.dataset.categoryName || 'Categoria';
                     productsPage = 1;
                     setCategoryActiveStyles();
                     renderProducts();
@@ -470,6 +955,7 @@
             const panel = document.getElementById('chatbot-panel');
             const toggleButton = document.getElementById('chatbot-toggle');
             const minimizeButton = document.getElementById('chatbot-minimize');
+            const heroChat = document.getElementById('hero-chat');
             const form = document.getElementById('chatbot-form');
             const input = document.getElementById('chatbot-input');
             const messages = document.getElementById('chatbot-messages');
@@ -477,29 +963,40 @@
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             let chatIsOpen = false;
 
-            const toggleChat = function (openState) {
+            const toggleChat = function (openState, prefill) {
                 chatIsOpen = openState;
-                panel.classList.toggle('chatbot-open', chatIsOpen);
+                panel.classList.toggle('is-open', chatIsOpen);
 
                 if (chatIsOpen) {
+                    if (typeof prefill === 'string' && prefill !== '') {
+                        input.value = prefill;
+                    }
                     input.focus();
                 }
             };
 
+            const askProduct = function (name) {
+                toggleChat(true, 'quero ' + name);
+            };
+
+            document.querySelectorAll('[data-product-name]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    askProduct(el.dataset.productName || '');
+                });
+            });
+
             const appendMessage = function (role, text) {
                 const bubble = document.createElement('div');
                 bubble.className = role === 'user'
-                    ? 'chatbot-bubble ml-auto rounded-2xl rounded-tr-md bg-violet-700 px-3 py-2 text-sm text-white shadow-sm'
-                    : 'chatbot-bubble rounded-2xl rounded-tl-md bg-white px-3 py-2 text-sm text-slate-700 shadow-sm';
-
+                    ? 'chatbot-bubble chatbot-bubble--user'
+                    : 'chatbot-bubble chatbot-bubble--bot';
                 bubble.textContent = text;
                 messages.appendChild(bubble);
                 messages.scrollTop = messages.scrollHeight;
             };
 
             const setLoading = function (loading) {
-                loader.classList.toggle('hidden', !loading);
-                loader.classList.toggle('flex', loading);
+                loader.classList.toggle('is-visible', loading);
             };
 
             toggleButton.addEventListener('click', function () {
@@ -508,6 +1005,10 @@
 
             minimizeButton.addEventListener('click', function () {
                 toggleChat(false);
+            });
+
+            heroChat.addEventListener('click', function () {
+                toggleChat(true);
             });
 
             form.addEventListener('submit', async function (event) {
@@ -538,9 +1039,9 @@
                     }
 
                     const payload = await response.json();
-                    appendMessage('assistant', payload.reply || 'Estamos verificando as promocoes do dia...');
+                    appendMessage('assistant', payload.reply || 'Estamos verificando as promoções do dia...');
                 } catch (error) {
-                    appendMessage('assistant', 'Nao consegui responder agora. Tente novamente em alguns segundos.');
+                    appendMessage('assistant', 'Não consegui responder agora. Tente novamente em alguns segundos.');
                 } finally {
                     setLoading(false);
                 }

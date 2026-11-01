@@ -34,7 +34,7 @@ Essa separação não exige aplicações diferentes. Exige identidade, linguagem
 
 - [ ] Distinguir acesso da equipe, cadastro do comerciante e eventual cadastro do consumidor.
 - [ ] Evitar elementos de portal/editorial no fluxo de operação da loja.
-- [ ] Se houver catálogo público, destacar a identidade do lojista e sua ação principal.
+- [x] Se houver catálogo público, destacar a identidade do lojista e sua ação principal (vitrine 31/10/2026: hero da loja + pedido pelo chat).
 - [ ] Alinhar a apresentação comercial ao que o produto realmente entrega.
 
 ## 4. Direção visual proposta para a gestão
@@ -115,6 +115,19 @@ Recebimento, caixa e comprovante operacional já estão no sistema. Protótipos 
 - [ ] Preservar dados preenchidos quando houver erro.
 
 **Pronto quando:** o operador entende o que foi encontrado, o que precisa revisar e como salvar ou continuar o próximo cadastro.
+
+### 6.4. Vitrine pública — catálogo da loja + pedido por chat
+
+Referência de catálogo público em `/vendix-preview`. Mock estático: `docs/mocks/vitrine-proposta.html`. Papel atual: vitrine da loja (não e-commerce); o chat monta o pedido.
+
+- [x] Marca da loja no hero (não barra administrativa / CNPJ no topo).
+- [x] Ofertas antes do catálogo completo; grade enxuta (foto, nome, preço).
+- [x] Chat como CTA principal (hero, FAB e toque no produto pré-preenche “quero {nome}”).
+- [x] Paleta própria da vitrine (folha/cítrico/papel), separada do roxo genérico anterior.
+- [ ] Paginação e filtro no servidor (ainda cliente; ver `IMPLEMENTACOES.md` §7).
+- [ ] Identidade visual configurável por loja (hoje `COMPANY_*` + paleta fixa).
+
+**Pronto quando:** o consumidor entende de quem é a loja, o que está em oferta e como pedir sem confundir com o admin Vendix.
 
 ## 7. Como validar os protótipos
 
