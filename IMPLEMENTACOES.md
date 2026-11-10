@@ -78,7 +78,8 @@ Entrega da fatia 1 (recebimento manual): `docs/VALIDACAO-RECEBIMENTO.md`. Entreg
 - [x] Implementar abertura e fechamento de caixa, saldo inicial, entradas/retiradas justificadas e divergências (31/10/2026).
 - [x] Disponibilizar comprovante da operação, distinguindo-o de documento fiscal (31/10/2026).
 - [x] Integrar cancelamento ao estorno/reembolso do recebimento registrado (estorno total automático na mesma transação).
-- [ ] Implementar troca e devolução parcial, com destino do produto devolvido e efeito financeiro explícitos.
+- [x] Implementar devolução parcial, com destino do produto (`restock`/`loss`) e efeito financeiro explícitos (10/11/2026).
+- [x] Implementar troca de produto (devolver A, baixar B, acerto da diferença) (10/11/2026).
 - [ ] Unificar os caminhos de criação de venda e as regras de identificação de cliente/vendedor.
 
 Integração automática de pagamento é uma etapa própria. Primeiro, deixar claro se o operador apenas registra um recebimento externo ou se o Vendix efetivamente cobra e confirma a transação.

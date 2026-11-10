@@ -14,7 +14,9 @@ class SalesStockPermissionsSeeder extends Seeder
     {
         $names = collect(['products', 'categories', 'sales', 'stock-movements'])
             ->crossJoin(['view', 'view-any', 'create', 'edit', 'delete'])
-            ->map(fn ($pair) => $pair[1].'-'.$pair[0])->push('cancel-sales');
+            ->map(fn ($pair) => $pair[1].'-'.$pair[0])
+            ->push('cancel-sales')
+            ->push('return-sales');
         $permissions = $names->map(fn (string $name) => Permission::findOrCreate($name, 'web'));
         Role::findOrCreate('Admin', 'web')->givePermissionTo($permissions);
         app(PermissionRegistrar::class)->forgetCachedPermissions();

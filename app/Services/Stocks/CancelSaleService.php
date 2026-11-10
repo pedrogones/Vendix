@@ -17,7 +17,7 @@ class CancelSaleService
             throw new \DomainException('Informe o motivo do cancelamento (até 255 caracteres).');
         }
         DB::transaction(function () use ($sale, $reason): void {
-            $locked = Sale::query()->lockForUpdate()->findOrFail($sale->id);
+            $locked = Sale::query()->lockForUpdate()->with(['items', 'returns.items'])->findOrFail($sale->id);
             if ($locked->status !== 'confirmed') {
                 throw new \DomainException('Apenas vendas confirmadas podem ser canceladas.');
             }
@@ -28,11 +28,15 @@ class CancelSaleService
                 app(RecordSalePaymentService::class)->refundAll($locked);
             }
             foreach ($locked->items()->orderBy('product_id')->orderBy('id')->get() as $item) {
+                $remaining = $locked->remainingQuantityForItem($item);
+                if ($remaining <= 0) {
+                    continue;
+                }
                 $product = Product::query()->lockForUpdate()->find($item->product_id);
                 if (! $product) {
                     throw new \DomainException('Produto da venda não encontrado para devolução.');
                 }
-                app(StockService::class)->in($product, (int) $item->quantity, 'return', $locked, mb_substr('Cancelamento: '.$reason, 0, 255));
+                app(StockService::class)->in($product, $remaining, 'return', $locked, mb_substr('Cancelamento: '.$reason, 0, 255));
             }
             $locked->refresh();
             $locked->transitionTo('canceled', [

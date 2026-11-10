@@ -61,15 +61,16 @@ class ControlPanel extends Page
             ->where('payment_status', Sale::PAYMENT_PAID)
             ->whereBetween('created_at', [$todayStart, $todayEnd]);
 
-        $todayTotal = (float) (clone $todaySalesQuery)->sum('total');
+        $todayTotal = Sale::sumNetReceived($todaySalesQuery);
         $todayCount = (int) (clone $todaySalesQuery)->count();
         $todayTicket = $todayCount > 0 ? $todayTotal / $todayCount : 0.0;
 
-        $monthTotal = (float) Sale::query()
-            ->where('status', 'confirmed')
-            ->where('payment_status', Sale::PAYMENT_PAID)
-            ->whereBetween('created_at', [$monthStart, $monthEnd])
-            ->sum('total');
+        $monthTotal = Sale::sumNetReceived(
+            Sale::query()
+                ->where('status', 'confirmed')
+                ->where('payment_status', Sale::PAYMENT_PAID)
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+        );
 
         $productsTotal = (int) Product::query()->count();
         $lowStockCount = (int) Product::query()

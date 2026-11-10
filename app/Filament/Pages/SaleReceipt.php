@@ -43,6 +43,8 @@ class SaleReceipt extends Page
         $this->sale = $resolved->load([
             'items.product',
             'payments',
+            'returns.items.product',
+            'exchanges.items.product',
             'user',
             'client',
         ]);

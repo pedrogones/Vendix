@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\Products\ProductPricingService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -114,9 +115,54 @@ class Sale extends Model
         return $this->hasMany(SalePayment::class);
     }
 
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SaleReturn::class);
+    }
+
+    public function exchanges(): HasMany
+    {
+        return $this->hasMany(SaleExchange::class);
+    }
+
     public function isPaid(): bool
     {
         return $this->payment_status === self::PAYMENT_PAID;
+    }
+
+    public function returnedQuantityForItem(SaleItem $item): int
+    {
+        if ($this->relationLoaded('returns')) {
+            return (int) $this->returns
+                ->flatMap(fn (SaleReturn $return) => $return->relationLoaded('items') ? $return->items : $return->items()->get())
+                ->where('sale_item_id', $item->id)
+                ->sum('quantity');
+        }
+
+        return (int) SaleReturnItem::query()
+            ->where('sale_item_id', $item->id)
+            ->sum('quantity');
+    }
+
+    public function remainingQuantityForItem(SaleItem $item): int
+    {
+        return max(0, (int) $item->quantity - $this->returnedQuantityForItem($item));
+    }
+
+    public function allItemsFullyReturned(): bool
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+        if ($items->isEmpty()) {
+            return false;
+        }
+
+        foreach ($items as $item) {
+            if ($this->remainingQuantityForItem($item) > 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function orderNumber(): string
@@ -131,6 +177,19 @@ class Sale extends Model
         $refunds = $this->payments->where('type', 'refund')->sum(fn (SalePayment $p) => $pricing->cents($p->amount));
 
         return (int) $payments - (int) $refunds;
+    }
+
+    /**
+     * Receita líquida (recebimentos − estornos) das vendas do query informado.
+     */
+    public static function sumNetReceived(Builder $salesQuery): float
+    {
+        $net = SalePayment::query()
+            ->whereIn('sale_id', (clone $salesQuery)->select('sales.id'))
+            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'payment' THEN amount WHEN type = 'refund' THEN -amount ELSE 0 END), 0) as net")
+            ->value('net');
+
+        return (float) $net;
     }
 
     public function transitionTo(string $status, array $attributes = []): void

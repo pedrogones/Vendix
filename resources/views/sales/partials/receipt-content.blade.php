@@ -170,3 +170,72 @@
         </table>
     @endif
 </section>
+
+@php
+    $returns = $sale->relationLoaded('returns') ? $sale->returns : $sale->returns()->with('items.product')->get();
+    $destinationLabels = \App\Models\SaleReturn::DESTINATION_LABELS;
+@endphp
+@if ($returns->isNotEmpty())
+<section class="receipt-section">
+    <h2>Devoluções</h2>
+    @foreach ($returns as $return)
+        <p class="muted">
+            {{ $return->created_at?->format('d/m/Y H:i') }}
+            · {{ $destinationLabels[$return->destination] ?? $return->destination }}
+            · {{ $return->reason }}
+        </p>
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th class="num">Qtd.</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($return->items as $returnItem)
+                    <tr>
+                        <td>{{ $returnItem->product?->name ?? 'Produto #'.$returnItem->product_id }}</td>
+                        <td class="num">{{ $returnItem->quantity }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endforeach
+</section>
+@endif
+
+@php
+    $exchanges = $sale->relationLoaded('exchanges') ? $sale->exchanges : $sale->exchanges()->with('items.product')->get();
+@endphp
+@if ($exchanges->isNotEmpty())
+<section class="receipt-section">
+    <h2>Trocas</h2>
+    @foreach ($exchanges as $exchange)
+        <p class="muted">
+            {{ $exchange->created_at?->format('d/m/Y H:i') }}
+            · crédito R$ {{ number_format($exchange->credit_cents / 100, 2, ',', '.') }}
+            · débito R$ {{ number_format($exchange->debit_cents / 100, 2, ',', '.') }}
+            · acerto R$ {{ number_format($exchange->settlement_cents / 100, 2, ',', '.') }}
+            · {{ $exchange->reason }}
+        </p>
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>Produto (saída)</th>
+                    <th class="num">Qtd.</th>
+                    <th class="num">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($exchange->items as $exchangeItem)
+                    <tr>
+                        <td>{{ $exchangeItem->product?->name ?? 'Produto #'.$exchangeItem->product_id }}</td>
+                        <td class="num">{{ $exchangeItem->quantity }}</td>
+                        <td class="num">R$ {{ number_format($exchangeItem->total_price, 2, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endforeach
+</section>
+@endif

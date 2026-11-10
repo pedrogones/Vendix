@@ -27,7 +27,7 @@ class SalesReportService
         $this->applyFilters($query, $filters);
 
         $totalSales = (clone $query)->count();
-        $totalRevenue = (float) (clone $query)->sum('total');
+        $totalRevenue = Sale::sumNetReceived($query);
 
         $itemsQuery = SaleItem::query()
             ->whereHas('sale', function (Builder $saleQuery) use ($filters) {

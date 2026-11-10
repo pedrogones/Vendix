@@ -44,7 +44,7 @@ class SalesDashboard extends Page
             ->where('payment_status', Sale::PAYMENT_PAID);
 
         $totalSales = (clone $confirmedSales)->count();
-        $totalRevenue = (float) (clone $confirmedSales)->sum('total');
+        $totalRevenue = Sale::sumNetReceived($confirmedSales);
         $ticketMedio = $totalSales > 0 ? $totalRevenue / $totalSales : 0.0;
         $productsTotal = Product::query()->count();
 
