@@ -1,6 +1,6 @@
 ﻿<section class="overflow-x-hidden bg-slate-50 pb-12 sm:pb-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="rounded-[1.5rem] border border-violet-200 bg-white p-5 shadow-sm sm:rounded-[2rem] sm:p-10 lg:p-12">
+        <div class="rounded-[1.5rem] border border-[#C5D9CF] bg-white p-5 shadow-sm sm:rounded-[2rem] sm:p-10 lg:p-12">
             <h2 class="text-center text-2xl font-extrabold text-slate-900 sm:text-3xl lg:text-4xl">
                 O essencial da loja, de ponta a ponta
             </h2>
@@ -10,7 +10,7 @@
 
             <div class="mt-8 grid gap-4 text-center sm:mt-12 sm:gap-8 md:grid-cols-3">
                 <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
-                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-violet-700">
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">
                         <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M4 7h16v10H4V7Z" stroke="currentColor" stroke-width="2"/>
                             <path d="M8 11h8M8 14h5" stroke="currentColor" stroke-width="2"/>
@@ -23,7 +23,7 @@
                 </article>
 
                 <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
-                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-violet-700">
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">
                         <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/>
                             <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
@@ -36,7 +36,7 @@
                 </article>
 
                 <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
-                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-violet-700">
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">
                         <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M7 7h10v10H7V7Z" stroke="currentColor" stroke-width="2"/>
                             <path d="M4 12h3M17 12h3M12 4v3M12 17v3" stroke="currentColor" stroke-width="2"/>

@@ -37,12 +37,19 @@
     <style>
         :root {
             color-scheme: light;
+            --folha: #2F5D50;
+            --folha-deep: #23483E;
+            --citrico: #D4A017;
+            --tinta: #1A1F16;
+            --papel: #F3F1EC;
         }
         html, body {
             overflow-x: hidden;
         }
         body {
             font-family: 'Manrope', sans-serif;
+            background: var(--papel);
+            color: var(--tinta);
         }
         #portal-mobile-nav[hidden] {
             display: none !important;

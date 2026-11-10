@@ -10,7 +10,7 @@
         <div class="grid gap-8 lg:grid-cols-2 lg:items-start lg:gap-10">
             <div class="min-w-0 space-y-8">
                 <article class="flex gap-3 sm:gap-4">
-                    <span class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 sm:h-12 sm:w-12">
+                    <span class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50] sm:h-12 sm:w-12">
                         <svg viewBox="0 0 24 24" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 12h12M12 6v12" stroke="currentColor" stroke-width="2"/>
                             <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
@@ -25,7 +25,7 @@
                 </article>
 
                 <article class="flex gap-3 sm:gap-4">
-                    <span class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 sm:h-12 sm:w-12">
+                    <span class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50] sm:h-12 sm:w-12">
                         <svg viewBox="0 0 24 24" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M7 7h10v10H7V7Z" stroke="currentColor" stroke-width="2"/>
                             <path d="M4 12h3M17 12h3" stroke="currentColor" stroke-width="2"/>
@@ -40,7 +40,7 @@
                 </article>
 
                 <article class="flex gap-3 sm:gap-4">
-                    <span class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 sm:h-12 sm:w-12">
+                    <span class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50] sm:h-12 sm:w-12">
                         <svg viewBox="0 0 24 24" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/>
                             <path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="2"/>
@@ -56,7 +56,7 @@
             </div>
 
             <div class="min-w-0 rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm sm:p-6">
-                <p class="text-sm font-bold uppercase tracking-[0.16em] text-violet-700">Na prática</p>
+                <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#2F5D50]">Na prática</p>
                 <ul class="mt-5 space-y-3 text-sm text-slate-700 sm:mt-6 sm:space-y-4 sm:text-base">
                     <li class="rounded-2xl bg-white p-4 shadow-sm"><strong>Produtos e categorias</strong> — cadastro com preço, promoção, foto e saldo.</li>
                     <li class="rounded-2xl bg-white p-4 shadow-sm"><strong>Leitura de código</strong> — câmera, leitor ou digitação para achar ou cadastrar.</li>
@@ -66,7 +66,7 @@
             </div>
         </div>
 
-        <div class="rounded-[1.5rem] border border-dashed border-violet-300 bg-violet-50/60 p-5 sm:rounded-[2rem] sm:p-10">
+        <div class="rounded-[1.5rem] border border-dashed border-[#A8C4B8] bg-[#F0F5F2]/60 p-5 sm:rounded-[2rem] sm:p-10">
             <h3 class="text-xl font-extrabold text-slate-900 sm:text-2xl">O que ainda não prometemos aqui</h3>
             <p class="mt-3 text-base text-slate-600 sm:text-lg">
                 Variações por cor/tamanho, múltiplas filiais, fluxo de caixa completo, fiado, gateway de pagamento automático e descrições geradas por IA

@@ -6,7 +6,7 @@
             <p class="mx-auto mt-3 max-w-2xl text-base text-slate-600 sm:mt-4 sm:text-lg">
                 O Vendix é o sistema da equipe: vender no balcão, manter estoque coerente e enxergar o que já foi recebido.
             </p>
-            <div class="mx-auto mt-4 h-1 w-24 rounded-full bg-violet-200 sm:w-40"></div>
+            <div class="mx-auto mt-4 h-1 w-24 rounded-full bg-[#C5D9CF] sm:w-40"></div>
         </div>
 
         <div class="mt-8 grid gap-4 sm:mt-10 sm:gap-6 md:grid-cols-3">
@@ -29,14 +29,14 @@
             </article>
         </div>
 
-        <div class="mt-10 rounded-[1.5rem] bg-violet-700 px-5 py-8 text-white sm:mt-16 sm:rounded-[2rem] sm:px-8 sm:py-10">
+        <div class="mt-10 rounded-[1.5rem] bg-[#2F5D50] px-5 py-8 text-white sm:mt-16 sm:rounded-[2rem] sm:px-8 sm:py-10">
             <div class="mx-auto max-w-3xl text-center">
                 <h3 class="text-2xl font-extrabold sm:text-3xl lg:text-4xl">Quer ver o Vendix em ação?</h3>
-                <p class="mt-3 text-base text-violet-100 sm:mt-4 sm:text-lg">
+                <p class="mt-3 text-base text-[#E7EFE9] sm:mt-4 sm:text-lg">
                     Entre no painel com sua conta ou fale com a gente para conhecer a operação — sem números genéricos de “milhares de lojas”.
                 </p>
                 <div class="mt-6 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center">
-                    <a href="{{ url('/admin/login') }}" class="rounded-xl bg-white px-6 py-3 text-base font-bold text-violet-800 transition hover:bg-violet-50 sm:px-8">
+                    <a href="{{ url('/admin/login') }}" class="rounded-xl bg-white px-6 py-3 text-base font-bold text-[#23483E] transition hover:bg-[#F0F5F2] sm:px-8">
                         Entrar no sistema
                     </a>
                     <a href="mailto:{{ config('mail.from.address', 'contato@vendix.app') }}" class="rounded-xl border border-white/40 px-6 py-3 text-base font-bold text-white transition hover:bg-white/10 sm:px-8">

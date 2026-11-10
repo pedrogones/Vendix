@@ -16,14 +16,14 @@
                 Painel web para a equipe da loja. Catálogo público e pedido por conversa usam o mesmo cadastro de produtos.
             </p>
             <ul class="mt-6 space-y-3 text-base text-slate-700 sm:mt-8 sm:text-lg">
-                <li class="flex items-start gap-3"><span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">&#10003;</span><span>PDV, estoque, produtos, clientes e permissões</span></li>
-                <li class="flex items-start gap-3"><span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">&#10003;</span><span>Recebimento manual na venda (dinheiro, Pix, cartão, outro)</span></li>
-                <li class="flex items-start gap-3"><span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">&#10003;</span><span>Dashboard e relatório de vendas recebidas</span></li>
-                <li class="flex items-start gap-3"><span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">&#10003;</span><span>Cadastro assistido por leitura de código</span></li>
+                <li class="flex items-start gap-3"><span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">&#10003;</span><span>PDV, estoque, produtos, clientes e permissões</span></li>
+                <li class="flex items-start gap-3"><span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">&#10003;</span><span>Recebimento manual na venda (dinheiro, Pix, cartão, outro)</span></li>
+                <li class="flex items-start gap-3"><span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">&#10003;</span><span>Dashboard e relatório de vendas recebidas</span></li>
+                <li class="flex items-start gap-3"><span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">&#10003;</span><span>Cadastro assistido por leitura de código</span></li>
             </ul>
             <div class="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                <a href="{{ url('/admin/login') }}" class="inline-flex flex-1 justify-center rounded-xl bg-violet-700 px-6 py-3 text-base font-bold text-white transition hover:bg-violet-800 sm:text-lg">Entrar no Vendix</a>
-                <a href="#contato" class="inline-flex flex-1 justify-center rounded-xl border border-slate-300 px-6 py-3 text-base font-bold text-slate-800 transition hover:border-violet-400 hover:text-violet-700 sm:text-lg">Falar conosco</a>
+                <a href="{{ url('/admin/login') }}" class="inline-flex flex-1 justify-center rounded-xl bg-[#2F5D50] px-6 py-3 text-base font-bold text-white transition hover:bg-[#23483E] sm:text-lg">Entrar no Vendix</a>
+                <a href="#contato" class="inline-flex flex-1 justify-center rounded-xl border border-slate-300 px-6 py-3 text-base font-bold text-slate-800 transition hover:border-[#2F5D50] hover:text-[#2F5D50] sm:text-lg">Falar conosco</a>
             </div>
         </div>
     </div>

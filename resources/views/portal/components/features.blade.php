@@ -1,9 +1,9 @@
 ﻿<section id="modulos" class="overflow-x-hidden bg-slate-50 pb-12 sm:pb-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="grid gap-6 rounded-[1.5rem] border border-violet-300 bg-white p-5 shadow-sm sm:gap-8 sm:rounded-[2rem] sm:p-6 lg:grid-cols-2 lg:items-center lg:p-10">
+        <div class="grid gap-6 rounded-[1.5rem] border border-[#A8C4B8] bg-white p-5 shadow-sm sm:gap-8 sm:rounded-[2rem] sm:p-6 lg:grid-cols-2 lg:items-center lg:p-10">
             <div class="min-w-0">
                 <h2 class="text-2xl font-extrabold leading-tight text-slate-900 sm:text-4xl">
-                    <span class="text-violet-700">Operação</span> do balcão ao relatório
+                    <span class="text-[#2F5D50]">Operação</span> do balcão ao relatório
                 </h2>
                 <p class="mt-4 text-base leading-relaxed text-slate-600 sm:mt-5 sm:text-lg">
                     Tudo gira em torno da loja: produtos, categorias, clientes, usuários com permissão,
@@ -12,24 +12,24 @@
 
                 <ul class="mt-6 space-y-3 text-base text-slate-800 sm:mt-7 sm:space-y-4 sm:text-lg">
                     <li class="flex items-start gap-3">
-                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">&#10003;</span>
+                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">&#10003;</span>
                         <span>PDV com itens, desconto e confirmação segura</span>
                     </li>
                     <li class="flex items-start gap-3">
-                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">&#10003;</span>
+                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">&#10003;</span>
                         <span>Promoções com regra única no balcão e na vitrine</span>
                     </li>
                     <li class="flex items-start gap-3">
-                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">&#10003;</span>
+                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">&#10003;</span>
                         <span>Dashboard e relatório de vendas recebidas</span>
                     </li>
                     <li class="flex items-start gap-3">
-                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700">&#10003;</span>
+                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E7EFE9] text-[#2F5D50]">&#10003;</span>
                         <span>Cancelamento com devolução de estoque e estorno</span>
                     </li>
                 </ul>
 
-                <a href="{{ url('/admin/login') }}" class="mt-6 inline-flex w-full justify-center rounded-xl bg-violet-700 px-8 py-3 text-base font-bold text-white transition hover:bg-violet-800 sm:mt-8 sm:w-auto">
+                <a href="{{ url('/admin/login') }}" class="mt-6 inline-flex w-full justify-center rounded-xl bg-[#2F5D50] px-8 py-3 text-base font-bold text-white transition hover:bg-[#23483E] sm:mt-8 sm:w-auto">
                     Acessar o painel
                 </a>
             </div>
@@ -47,7 +47,7 @@
                             <span>Estoque</span>
                             <strong class="shrink-0 text-slate-900">histórico</strong>
                         </div>
-                        <div class="flex flex-col gap-1 rounded-xl bg-violet-50 px-3 py-2 text-violet-800 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex flex-col gap-1 rounded-xl bg-[#F0F5F2] px-3 py-2 text-[#23483E] sm:flex-row sm:items-center sm:justify-between">
                             <span>Recebimento</span>
                             <strong class="text-sm">dinheiro · Pix · cartão</strong>
                         </div>
